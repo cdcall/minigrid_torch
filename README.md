@@ -360,15 +360,28 @@ number of steps the agent needed to complete the puzzle for each episode
 
 #### Run Jupyter
 
-##### Locally
+##### Before your start: Set up data (needed by the example Notebook)
+In a new terminal, run
+
+```
+python -m scripts.train --algo ppo --env MiniGrid-DoorKey-6x6-v0 --model DoorKey6 --save-interval 10 --frames 80000
+```
+
+
+##### Run Jupyter Locally
 In a new terminal navigate to /<path-to>/rl_sandbox
 
 ```
-tensorboard --logdir=storage --samples_per_plugin "images=250"
+jupyter-notebook
 ```
 
-##### In Docker
+This will launch Jupyter in your browser.  
+Click on the link to `visitibility_notebook.ipynb`
+
+##### Run Jupyter in Docker
+
 In a new terminal  
+
 #####Run Jupyter as root
 ```
 docker exec -it rl_sandbox bash
@@ -387,10 +400,7 @@ you can now log in to Jupyter via your browser using the token '1234'
    localhost:8889/?token=1234
    ```
 
-####. Set up data (needed by the example Jupyter Notebook)
-In a new terminal, run
-```
-python -m scripts.train --algo ppo --env MiniGrid-DoorKey-6x6-v0 --model DoorKey6 --save-interval 10 --frames 80000
-```
+This will launch Jupyter in your browser.  
+Click on the link to `visitibility_notebook.ipynb`
 
 
