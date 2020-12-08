@@ -3,13 +3,12 @@ import time
 import datetime
 import torch
 import torch_ac
-import tensorboardX
+# import tensorboardX
 import sys
-
 import utils
 from model import ACModel
 from gym_minigrid.wrappers import FullyObsWrapper
-
+from utils.output_utils import OutputUtils
 
 # Parse arguments
 
@@ -32,8 +31,7 @@ parser.add_argument("--procs", type=int, default=16,
                     help="number of processes (default: 16)")
 parser.add_argument("--frames", type=int, default=10**7,
                     help="number of frames of training (default: 1e7)")
-
-parser.add_argument("--wrapper", default = None,
+parser.add_argument("--wrapper", default=None,
                     help="wrapper to modify observation")
 
 ## Parameters for main algorithm
@@ -82,7 +80,9 @@ model_dir = utils.get_model_dir(model_name)
 
 txt_logger = utils.get_txt_logger(model_dir)
 csv_file, csv_logger = utils.get_csv_logger(model_dir)
-tb_writer = tensorboardX.SummaryWriter(model_dir)
+# tb_writer = tensorboardX.SummaryWriter(model_dir)
+tb_dir = model_dir + "/Train"
+output_utils = OutputUtils(tb_dir, tb_dir)
 
 # Log command and all script arguments
 
@@ -158,9 +158,10 @@ txt_logger.info("Optimizer loaded\n")
 num_frames = status["num_frames"]
 update = status["update"]
 start_time = time.time()
+
 while num_frames < args.frames:
     # Update model parameters
-    print("got here")
+    # print("got here")
     update_start_time = time.time()
     exps, logs1 = algo.collect_experiences()
     logs2 = algo.update_parameters(exps)
@@ -175,8 +176,11 @@ while num_frames < args.frames:
     if update % args.log_interval == 0:
         fps = logs["num_frames"]/(update_end_time - update_start_time)
         duration = int(time.time() - start_time)
+
+        # TODO what is the value in showing both return and reshaped return?
         return_per_episode = utils.synthesize(logs["return_per_episode"])
         rreturn_per_episode = utils.synthesize(logs["reshaped_return_per_episode"])
+
         num_frames_per_episode = utils.synthesize(logs["num_frames_per_episode"])
 
         header = ["update", "frames", "FPS", "duration"]
@@ -200,8 +204,10 @@ while num_frames < args.frames:
         csv_logger.writerow(data)
         csv_file.flush()
 
-        for field, value in zip(header, data):
-            tb_writer.add_scalar(field, value, num_frames)
+        # log to  tensorboard (groups some fields)
+        output_utils.write_tensorboard_training_values(header, data, num_frames)
+        # for field, value in zip(header, data):
+        #     tb_writer.add_scalar(field, value, num_frames)
 
     # Save status
 

@@ -2,7 +2,7 @@ import argparse
 import time
 import torch
 from torch_ac.utils.penv import ParallelEnv
-
+import tensorboardX
 import utils
 
 
@@ -103,11 +103,17 @@ print("F {} | FPS {:.0f} | D {} | R:μσmM {:.2f} {:.2f} {:.2f} {:.2f} | F:μσm
               *num_frames_per_episode.values()))
 
 # Print worst episodes
-
 n = args.worst_episodes_to_show
 if n > 0:
     print("\n{} worst episodes:".format(n))
-
     indexes = sorted(range(len(logs["return_per_episode"])), key=lambda k: logs["return_per_episode"][k])
     for i in indexes[:n]:
         print("- episode {}: R={}, F={}".format(i, logs["return_per_episode"][i], logs["num_frames_per_episode"][i]))
+
+# log to tensorboard
+tb_writer = tensorboardX.SummaryWriter(model_dir + "/Evaluation")
+count = 0
+for r, f in zip(logs["return_per_episode"], logs["num_frames_per_episode"]):
+    tb_writer.add_scalar("EVALUATION_return_per_episode", r, count)
+    tb_writer.add_scalar("EVALUATION_num_frames_per_episode", f, count)
+    count += 1

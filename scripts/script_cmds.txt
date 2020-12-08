@@ -1,0 +1,35 @@
+
+# convenience for copy and paste on the command line
+# (feel free to add useful commands)
+
+# Door Key ---------------------------
+
+# 5x5
+python -m scripts.train --algo ppo --env MiniGrid-DoorKey-5x5-v0 --model DoorKey5 --save-interval 10 --frames 80000
+python -m scripts.visualize --env MiniGrid-DoorKey-5x5-v0 --model DoorKey5
+python -m scripts.evaluate --env MiniGrid-DoorKey-5x5-v0 --model DoorKey5
+
+# 6x6
+python -m scripts.train --algo ppo --env MiniGrid-DoorKey-6x6-v0 --model DoorKey6 --save-interval 10 --frames 80000
+python -m scripts.visualize --env MiniGrid-DoorKey-6x6-v0 --model DoorKey6
+python -m scripts.evaluate --env MiniGrid-DoorKey-6x6-v0 --model DoorKey6
+
+# Go To Door ---------------------------
+
+# 5x5
+python -m scripts.train --algo ppo --env MiniGrid-GoToDoor-5x5-v0 --model GoToDoor5 --text --save-interval 10 --frames 1000000
+
+
+# Red Blue Doors (with memory) ---------------
+
+# 6x6
+python -m scripts.train --algo ppo --env MiniGrid-RedBlueDoors-6x6-v0 --model RedBlueDoors6 --recurrence 4 --save-interval 10 --frames 1000000
+python -m scripts.evaluate --env MiniGrid-RedBlueDoors-6x6-v0 --model RedBlueDoors6 --memory
+
+
+# Lava Gap -----------------------------------
+
+# 6x6
+python -m scripts.train --algo ppo --env MiniGrid-LavaGapS6-v0 --model LavaGap6 --save-interval 100 --frames 100000
+python -m scripts.visualize --env MiniGrid-LavaGapS6-v0 --model LavaGap6
+python -m scripts.evaluate --env MiniGrid-LavaGapS6-v0 --model LavaGap6

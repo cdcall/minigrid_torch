@@ -1,8 +1,7 @@
 import argparse
-import time
 import numpy
 import torch
-
+from utils.output_utils import OutputUtils
 import utils
 
 
@@ -23,12 +22,18 @@ parser.add_argument("--pause", type=float, default=0.1,
                     help="pause duration between two consequent actions of the agent (default: 0.1)")
 parser.add_argument("--gif", type=str, default=None,
                     help="store output as gif with the given filename")
-parser.add_argument("--episodes", type=int, default=1000000,
+parser.add_argument("--episodes", type=int, default=1000,  # 1000000,
                     help="number of episodes to visualize")
 parser.add_argument("--memory", action="store_true", default=False,
                     help="add a LSTM to the model")
 parser.add_argument("--text", action="store_true", default=False,
                     help="add a GRU to the model")
+
+# control which images are logged to tensorboard
+parser.add_argument("--episode_step", type=int, default=100,
+                    help="write images to tensorboard every <n> episodes")
+parser.add_argument("--img_step", type=int, default=1,
+                    help="write an image to tensorboard every <n> steps per candidate episode")
 
 args = parser.parse_args()
 
@@ -55,20 +60,31 @@ agent = utils.Agent(env.observation_space, env.action_space, model_dir,
                     device=device, argmax=args.argmax, use_memory=args.memory, use_text=args.text)
 print("Agent loaded\n")
 
+tb_dir = model_dir + "/Visualize"
+output_utils = OutputUtils(tb_dir, tb_dir)
+
 # Run the agent
 
 if args.gif:
-   from array2gif import write_gif
-   frames = []
+    from array2gif import write_gif
+frames = []
 
-# Create a window to view the environment
-env.render('human')
 
+episode_step = 0
 for episode in range(args.episodes):
     obs = env.reset()
-
+    img_step = 0
     while True:
-        env.render('human')
+
+        # log images to tensorboard
+        if episode_step % args.episode_step == 0:
+            if img_step % args.img_step == 0:
+                frame = numpy.moveaxis(env.render("rgb_array"), 2, 0)
+                title = "agent_progress_episode_" + str(episode_step)
+                output_utils.write_image_to_tensorboard(frame, title, img_step)
+
+        img_step += 1
+
         if args.gif:
             frames.append(numpy.moveaxis(env.render("rgb_array"), 2, 0))
 
@@ -76,11 +92,12 @@ for episode in range(args.episodes):
         obs, reward, done, _ = env.step(action)
         agent.analyze_feedback(reward, done)
 
-        if done or env.window.closed:
+        if done:
+            # show number of steps agent took to solve the puzzle for this episode
+            output_utils.tb_writer.add_scalar("VISUALIZATION_steps_per_episode", img_step, episode_step)
             break
 
-    if env.window.closed:
-        break
+    episode_step += 1
 
 if args.gif:
     print("Saving gif... ", end="")

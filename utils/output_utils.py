@@ -23,18 +23,27 @@ class OutputUtils:
         os.makedirs(log_dir)
         self.tb_writer = SummaryWriter(log_dir)
 
-        self.image_count = 0
+        self.single_scalars = ["FPS", "entropy", "value", "policy_loss", "value_loss", "grad_norm"]
 
-    # TODO example in case we want to log
-    def write_tensorboard_statistics(self, step, model_loss, deep_recon_loss,
-                                     down_shallow_recon_losses, down_intelligibility_losses,
-                                     up_shallow_recon_losses, up_intelligibility_losses):
-        self.tb_writer.add_scalar("Deep Reconstruction Loss", deep_recon_loss, step)
-        self.tb_writer.add_scalar("Combined Reconstruction Loss", model_loss, step)
-        self.tb_writer.add_scalars("Down Shallow Reconstruction Loss", down_shallow_recon_losses, step)
-        self.tb_writer.add_scalars("Down Intelligibility Loss", down_intelligibility_losses, step)
-        self.tb_writer.add_scalars("Up Shallow Reconstruction Loss", up_shallow_recon_losses, step)
-        self.tb_writer.add_scalars("Up Intelligibility Loss", up_intelligibility_losses, step)
+    def write_tensorboard_training_values(self, header, data, num_frames):
+        frame_dict = {}
+        return_dict = {}
+
+        for field, value in zip(header, data):
+            if field in self.single_scalars:
+                self.tb_writer.add_scalar(field, value, num_frames)
+            else:
+                if "num_frames_" in field:
+                    field_name = field.replace("num_frames_", "")
+                    frame_dict[field_name] = value
+                elif "rreturn_" in field:
+                    field_name = field.replace("rreturn_", "")
+                    return_dict[field_name] = value
+                # ignoring return_ values for now
+                # ignoring ["duration", "frames", "update"]
+
+        self.tb_writer.add_scalars("Frame_Data", frame_dict, num_frames)
+        self.tb_writer.add_scalars("Return_Data", return_dict, num_frames)
 
     @staticmethod
     def imshow_common(img, is_tensor=False):
@@ -71,9 +80,6 @@ class OutputUtils:
         plt.clf()
 
     def write_image_to_tensorboard(self, tensor, title, tb_step):
-        print(f"write image {self.image_count}")
-        self.image_count += 1
         fig = plt.figure()
-        # plt.title(title)
         self.imshow(tensor, title)
         self.tb_writer.add_figure(tag=title, figure=fig, global_step=tb_step)

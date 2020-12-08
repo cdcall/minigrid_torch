@@ -39,9 +39,9 @@ RUN python3.7 -m pip install --upgrade setuptools
 ENV PATH="/root/.local/bin:${PATH}"
 
 # install cloned gym-minigrid
-COPY gym_minigrid /tmp/gym_minigrid
-RUN  chmod -R 777 /tmp/gym_minigrid
-RUN  pip install -e /tmp/gym_minigrid/.
+# COPY gym_minigrid /tmp/gym_minigrid
+# RUN  chmod -R 777 /tmp/gym_minigrid
+# RUN  pip install -e /tmp/gym_minigrid/.
 
 # CHANGE username as needed
 ARG username=rl_sandbox

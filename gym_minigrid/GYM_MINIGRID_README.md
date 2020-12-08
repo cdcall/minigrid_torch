@@ -111,7 +111,7 @@ field which can be used as an optional compass. Using dictionaries makes it
 easy for you to add additional information to observations
 if you need to, without having to encode everything into a single tensor.
 
-There are a variery of wrappers to change the observation format available in [gym_minigrid/wrappers.py](/gym_minigrid/wrappers.py). If your RL code expects one single tensor for observations, take a look at
+There are a variery of wrappers to change the observation format available in [gym_minigrid/wrappers.py](/wrappers.py). If your RL code expects one single tensor for observations, take a look at
 `FlatObsWrapper`. There is also an `ImgObsWrapper` that gets rid of the 'mission' field in observations,
 leaving only the image field tensor.
 
@@ -151,7 +151,7 @@ Actions in the basic environment:
 
 Default tile/observation encoding:
 - Each tile is encoded as a 3 dimensional tuple: (OBJECT_IDX, COLOR_IDX, STATE) 
-- OBJECT_TO_IDX and COLOR_TO_IDX mapping can be found in [gym_minigrid/minigrid.py](gym_minigrid/minigrid.py)
+- OBJECT_TO_IDX and COLOR_TO_IDX mapping can be found in [gym_minigrid/minigrid.py](minigrid.py)
 - e.g. door STATE -> 0: open, 1: closed, 2: locked
 
 By default, sparse rewards are given for reaching a green goal tile. A
@@ -160,11 +160,11 @@ environment-specific time step limit for completing the task.
 You can define your own reward function by creating a class derived
 from `MiniGridEnv`. Extending the environment with new object types or new actions
 should be very easy. If you wish to do this, you should take a look at the
-[gym_minigrid/minigrid.py](gym_minigrid/minigrid.py) source file.
+[gym_minigrid/minigrid.py](minigrid.py) source file.
 
 ## Included Environments
 
-The environments listed below are implemented in the [gym_minigrid/envs](/gym_minigrid/envs) directory.
+The environments listed below are implemented in the [gym_minigrid/envs](/envs) directory.
 Each environment provides one or more configurations registered with OpenAI gym. Each environment
 is also programmatically tunable in terms of size/complexity, which is useful for curriculum learning
 or to fine-tune difficulty.
@@ -180,7 +180,7 @@ Registered configurations:
 - `MiniGrid-Empty-16x16-v0`
 
 <p align="center">
-<img src="/figures/empty-env.png" width=250>
+<img src="/empty-env.png" width=250>
 </p>
 
 This environment is an empty room, and the goal of the agent is to reach the
@@ -198,7 +198,7 @@ Registered configurations:
 - `MiniGrid-FourRooms-v0`
 
 <p align="center">
-<img src="/figures/four-rooms-env.png" width=380>
+<img src="/four-rooms-env.png" width=380>
 </p>
 
 Classic four room reinforcement learning environment. The agent must navigate
@@ -215,7 +215,7 @@ Registered configurations:
 - `MiniGrid-DoorKey-16x16-v0`
 
 <p align="center">
-<img src="/figures/door-key-env.png">
+<img src="/door-key-env.png">
 </p>
 
 This environment has a key that the agent must pick up in order to unlock
@@ -231,7 +231,7 @@ Registered configurations:
 - `MiniGrid-MultiRoom-N6-v0` (six rooms)
 
 <p align="center">
-<img src="/figures/multi-room.gif" width=416 height=424>
+<img src="/multi-room.gif" width=416 height=424>
 </p>
 
 This environment has a series of connected rooms with doors that must be
@@ -248,7 +248,7 @@ Registered configurations:
 - `MiniGrid-Fetch-8x8-N3-v0`
 
 <p align="center">
-<img src="/figures/fetch-env.png" width=450>
+<img src="/fetch-env.png" width=450>
 </p>
 
 This environment has multiple objects of assorted types and colors. The
@@ -264,7 +264,7 @@ Registered configurations:
 - `MiniGrid-GoToDoor-8x8-v0`
 
 <p align="center">
-<img src="/figures/gotodoor-6x6.png" width=400>
+<img src="/gotodoor-6x6.png" width=400>
 </p>
 
 This environment is a room with four doors, one on each wall. The agent
@@ -509,7 +509,7 @@ Registered configurations:
 - `MiniGrid-Dynamic-Obstacles-16x16-v0`
 
 <p align="center">
-<img src="/figures/dynamic_obstacles.gif">
+<img src="/dynamic_obstacles.gif">
 </p>
 
 This environment is an empty room with moving obstacles. The goal of the agent is to reach the green goal square without colliding with any obstacle. A large penalty is subtracted if the agent collides with an obstacle and the episode finishes. This environment is useful to test Dynamic Obstacle Avoidance for mobile robots with Reinforcement Learning in Partial Observability.
