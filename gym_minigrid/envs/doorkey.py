@@ -1,5 +1,6 @@
-from gym_minigrid.minigrid import *
+from gym_minigrid.minigrid_env import *
 from gym_minigrid.register import register
+
 
 class DoorKeyEnv(MiniGridEnv):
     """
@@ -43,17 +44,21 @@ class DoorKeyEnv(MiniGridEnv):
 
         self.mission = "use the key to open the door and then get to the goal"
 
+
 class DoorKeyEnv5x5(DoorKeyEnv):
     def __init__(self):
         super().__init__(size=5)
+
 
 class DoorKeyEnv6x6(DoorKeyEnv):
     def __init__(self):
         super().__init__(size=6)
 
+
 class DoorKeyEnv16x16(DoorKeyEnv):
     def __init__(self):
         super().__init__(size=16)
+
 
 register(
     id='MiniGrid-DoorKey-5x5-v0',

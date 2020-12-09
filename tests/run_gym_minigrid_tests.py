@@ -4,7 +4,7 @@ import random
 import numpy as np
 import gym
 from gym_minigrid.register import env_list
-from gym_minigrid.minigrid import Grid, OBJECT_TO_IDX
+from gym_minigrid.minigrid_env import Grid, OBJECT_TO_IDX
 
 # Test specifically importing a specific environment
 from gym_minigrid.envs import DoorKeyEnv
@@ -68,7 +68,7 @@ for env_idx, env_name in enumerate(env_list):
         env.render('rgb_array')
 
     # Test the close method
-    env.close()
+    # env.close()
 
     env = gym.make(env_name)
     env = ReseedWrapper(env)

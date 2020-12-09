@@ -1,4 +1,4 @@
-from gym_minigrid.minigrid import Ball
+from gym_minigrid.minigrid_env import Ball
 from gym_minigrid.roomgrid import RoomGrid
 from gym_minigrid.register import register
 

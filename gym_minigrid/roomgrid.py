@@ -1,4 +1,4 @@
-from .minigrid import *
+from .minigrid_env import *
 
 def reject_next_to(env, pos):
     """

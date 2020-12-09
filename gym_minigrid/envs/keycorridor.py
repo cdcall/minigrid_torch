@@ -1,6 +1,7 @@
 from gym_minigrid.roomgrid import RoomGrid
 from gym_minigrid.register import register
 
+
 class KeyCorridor(RoomGrid):
     """
     A ball is behind a locked door, the key is placed in a
@@ -50,13 +51,12 @@ class KeyCorridor(RoomGrid):
 
     def step(self, action):
         obs, reward, done, info = super().step(action)
-
         if action == self.actions.pickup:
             if self.carrying and self.carrying == self.obj:
                 reward = self._reward()
                 done = True
-
         return obs, reward, done, info
+
 
 class KeyCorridorS3R1(KeyCorridor):
     def __init__(self, seed=None):
@@ -66,6 +66,7 @@ class KeyCorridorS3R1(KeyCorridor):
             seed=seed
         )
 
+
 class KeyCorridorS3R2(KeyCorridor):
     def __init__(self, seed=None):
         super().__init__(
@@ -73,6 +74,7 @@ class KeyCorridorS3R2(KeyCorridor):
             num_rows=2,
             seed=seed
         )
+
 
 class KeyCorridorS3R3(KeyCorridor):
     def __init__(self, seed=None):
@@ -82,6 +84,7 @@ class KeyCorridorS3R3(KeyCorridor):
             seed=seed
         )
 
+
 class KeyCorridorS4R3(KeyCorridor):
     def __init__(self, seed=None):
         super().__init__(
@@ -89,6 +92,7 @@ class KeyCorridorS4R3(KeyCorridor):
             num_rows=3,
             seed=seed
         )
+
 
 class KeyCorridorS5R3(KeyCorridor):
     def __init__(self, seed=None):
@@ -98,6 +102,7 @@ class KeyCorridorS5R3(KeyCorridor):
             seed=seed
         )
 
+
 class KeyCorridorS6R3(KeyCorridor):
     def __init__(self, seed=None):
         super().__init__(
@@ -105,6 +110,7 @@ class KeyCorridorS6R3(KeyCorridor):
             num_rows=3,
             seed=seed
         )
+
 
 register(
     id='MiniGrid-KeyCorridorS3R1-v0',

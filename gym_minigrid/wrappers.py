@@ -5,7 +5,7 @@ from functools import reduce
 import numpy as np
 import gym
 from gym import error, spaces, utils
-from .minigrid import OBJECT_TO_IDX, COLOR_TO_IDX, STATE_TO_IDX
+from .minigrid_env import OBJECT_TO_IDX, COLOR_TO_IDX, STATE_TO_IDX
 
 class ReseedWrapper(gym.core.Wrapper):
     """
@@ -332,7 +332,7 @@ class ViewSizeWrapper(gym.core.Wrapper):
     def step(self, action):
         return self.env.step(action)
 
-from .minigrid import Goal
+from .minigrid_env import Goal
 class DirectionObsWrapper(gym.core.ObservationWrapper):
     """
     Provides the slope/angular direction to the goal with the observations as modeled by (y2 - y2 )/( x2 - x1)

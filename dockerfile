@@ -64,7 +64,8 @@ RUN service ssh start
 
 # open up ssh, jupyter and tensorboard ports
 EXPOSE 22/tcp
-EXPOSE 6006/tcp
+# EXPOSE 6006/tcp  to avoid port conflicts, using 6007
+EXPOSE 6007/tcp
 # EXPOSE 8888/tcp  to avoid port conflicts, using 8889
 EXPOSE 8889/tcp
 

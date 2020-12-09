@@ -2,14 +2,16 @@ from gym_minigrid.minigrid_env import *
 from gym_minigrid.register import register
 
 
-class LavaGapEnv(MiniGridEnv):
+class GrassEnv(MiniGridEnv):
     """
-    Environment with one wall of lava with a small gap to cross through
-    This environment is similar to LavaCrossing but simpler in structure.
+    Environment with one or more patches of grass which incur a penalty.
     """
 
-    def __init__(self, size, obstacle_type=Lava, seed=None):
+    def __init__(self, size, obstacle_type=Grass, num_patches=1, seed=None):
         self.obstacle_type = obstacle_type
+
+        # TODO check number of patches < some multiple of size
+
         if seed:
             seed = None
         super().__init__(
@@ -37,51 +39,47 @@ class LavaGapEnv(MiniGridEnv):
         self.goal_pos = np.array((width - 2, height - 2))
         self.put_obj(Goal(), *self.goal_pos)
 
-        # Generate and store random gap position
-        self.gap_pos = np.array((
+        # TODO multiple grass patches
+        # Generate and store random grass position
+        self.grass_pos = np.array((
             self._rand_int(2, width - 2),
             self._rand_int(1, height - 1),
         ))
 
-        # Place the obstacle wall
-        self.grid.vert_wall(self.gap_pos[0], 1, height - 2, self.obstacle_type)
-
-        # Put a hole in the wall
-        self.grid.set(*self.gap_pos, None)
+        # Place the patch of grass
+        self.grid.vert_wall(self.grass_pos[0], self.grass_pos[1], 1, self.obstacle_type)
 
         self.mission = (
-            "avoid the lava and get to the green goal square"
-            if self.obstacle_type == Lava
-            else "find the opening and get to the green goal square"
+            "avoid penalties for stepping on the grass and get to the green goal square"
         )
 
 
-class LavaGapS5Env(LavaGapEnv):
+class GrassS5Env(GrassEnv):
     def __init__(self):
         super().__init__(size=5)
 
 
-class LavaGapS6Env(LavaGapEnv):
+class GrassS6Env(GrassEnv):
     def __init__(self):
         super().__init__(size=6)
 
 
-class LavaGapS7Env(LavaGapEnv):
+class GrassS7Env(GrassEnv):
     def __init__(self):
         super().__init__(size=7)
 
 
 register(
-    id='MiniGrid-LavaGapS5-v0',
-    entry_point='gym_minigrid.envs:LavaGapS5Env'
+    id='MiniGrid-GrassS5-v0',
+    entry_point='gym_minigrid.envs:GrassS5Env'
 )
 
 register(
-    id='MiniGrid-LavaGapS6-v0',
-    entry_point='gym_minigrid.envs:LavaGapS6Env'
+    id='MiniGrid-GrassS6-v0',
+    entry_point='gym_minigrid.envs:GrassS6Env'
 )
 
 register(
-    id='MiniGrid-LavaGapS7-v0',
-    entry_point='gym_minigrid.envs:LavaGapS7Env'
+    id='MiniGrid-GrassS7-v0',
+    entry_point='gym_minigrid.envs:GrassS7Env'
 )

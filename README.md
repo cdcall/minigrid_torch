@@ -375,7 +375,7 @@ In a new terminal navigate to /<path-to>/rl_sandbox
 jupyter-notebook
 ```
 
-This will launch Jupyter in your browser.  
+This will launch Jupyter in your browser (at port 8888)  
 Click on the link to `visitibility_notebook.ipynb`
 
 ##### Run Jupyter in Docker
@@ -395,12 +395,10 @@ docker exec -it rl_sandbox bash
 jupyter notebook --ip=0.0.0.0 
 ```
  
-you can now log in to Jupyter via your browser using the token '1234'
+you can now log in to Jupyter via your browser on port 8889 using the token '1234'
    ```
    localhost:8889/?token=1234
-   ```
-
-This will launch Jupyter in your browser.  
+   ``` 
 Click on the link to `visitibility_notebook.ipynb`
 
 
