@@ -67,9 +67,10 @@ docker build -t rl_sandbox .
 ```
 
 
-#### 3. Run Docker image (note jupyter is serving on port 8889)
+#### 3. Run Docker image 
+(note tensorboard is serving on port 6007, and jupyter is serving on port 8889)
 ```
-docker run -p 6006:6006 -p 8889:8889 --rm -it --name rl_sandbox rl_sandbox:latest
+docker run -p 6007:6007 -p 8889:8889 --rm -it --name rl_sandbox rl_sandbox:latest
 ```
 
 This will return a prompt: `root@f553584171ae:/home/rl_sandbox# `  
@@ -289,6 +290,11 @@ In a new terminal navigate to /<path-to>/rl_sandbox
 tensorboard --logdir=storage --samples_per_plugin "images=250"
 ```
 
+you can now access Tensorboard via your browser on the usual port
+   ```
+   localhost:6006
+   ```
+   
 ##### In Docker
 In a new terminal  
 
@@ -297,9 +303,9 @@ docker exec -it rl_sandbox bash
 tensorboard --logdir=storage --bind_all --samples_per_plugin "images=250"
 ```
 
-In either case, you can now access Tensorboard via your browser 
+You can now access Tensorboard via your browser at port 6007
    ```
-   localhost:6006
+   localhost:6007
    ```
 
 ### Tensorboard Event Files
@@ -348,7 +354,9 @@ In addition to optionally writing out an animated gif showing all the agent's ac
 the user can set flags in the call to `visualize.py` to log agent actions every `<n>` episodes (default is 100).  This allows
 the user to step through the agent's choices and actions per episode.
 
-![image info](figures/visualize_image.png)
+**Note** the breadcrumbs showing the path the agent took, and the newly-added patch of grass.
+
+![image info](figures/stepped_on_grass.png)
 
 There's also an experimental time-series graph that plots the
 number of steps the agent needed to complete the puzzle for each episode
