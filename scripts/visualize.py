@@ -22,7 +22,7 @@ parser.add_argument("--pause", type=float, default=0.1,
                     help="pause duration between two consequent actions of the agent (default: 0.1)")
 parser.add_argument("--gif", type=str, default=None,
                     help="store output as gif with the given filename")
-parser.add_argument("--episodes", type=int, default=10,  #00,  # 1000000,
+parser.add_argument("--episodes", type=int, default=1000,   # 1000000,
                     help="number of episodes to visualize")
 parser.add_argument("--memory", action="store_true", default=False,
                     help="add a LSTM to the model")
@@ -30,7 +30,7 @@ parser.add_argument("--text", action="store_true", default=False,
                     help="add a GRU to the model")
 
 # control which images are logged to tensorboard
-parser.add_argument("--episode_step", type=int, default=5,  #100,
+parser.add_argument("--episode_step", type=int, default=100,
                     help="write images to tensorboard every <n> episodes")
 parser.add_argument("--img_step", type=int, default=1,
                     help="write an image to tensorboard every <n> steps per candidate episode")
