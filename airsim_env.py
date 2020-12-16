@@ -55,6 +55,7 @@ class AirsimEnv(MiniGridEnv):
         ignored = False
         extra_steps = 0
 
+        # TODO this is how it is done in gym-minigrid, but I'd be happier if this call was last
         # update dynamic object positions (if any)
         self._place_dynamic_obstacles()
 
@@ -143,6 +144,8 @@ class AirsimEnv(MiniGridEnv):
         self._set_mission()
 
     def _move_forward(self, n_cells, logger):
+
+        print(f"move forward {n_cells}")
 
         done = False
         reward = 0

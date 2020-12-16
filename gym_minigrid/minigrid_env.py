@@ -271,7 +271,6 @@ class MiniGridEnv(ABC):  # (gym.Env):
         self.breadcrumbs[self.agent_pos[0], self.agent_pos[1]] = True
         self.agent_pos = self.front_pos
         if logger:
-            logger.info("    fwd")
             logger.info(f"        move to [{self.agent_pos[0]}, {self.agent_pos[1]}] at step {self.step_count}")
 
     def _create_highlight_mask(self):
