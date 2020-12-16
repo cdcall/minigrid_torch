@@ -22,6 +22,9 @@ class AirsimDynamicObstaclesEnv(AirsimEnv):
             self.n_obstacles = int(n_obstacles)
         else:
             self.n_obstacles = int(size/2)
+
+        self.obstacles = None
+
         super().__init__(
             grid_size=size,
             max_steps=4 * size * size,
@@ -44,18 +47,18 @@ class AirsimDynamicObstaclesEnv(AirsimEnv):
         pass
 
     def _place_dynamic_obstacles(self):
-        # create the obstacles
+
         if not self.obstacles:
+            # create the obstacles, and set initial position
             self.obstacles = []
             for i_obst in range(self.n_obstacles):
                 self.obstacles.append(Ball())
+                self.place_obj(self.obstacles[i_obst], max_tries=100)
+                print(self.obstacles)
 
-        # set or update obstacle positions
+        # update obstacle positions
         for i_obst in range(len(self.obstacles)):
             old_pos = self.obstacles[i_obst].cur_pos
-            if not old_pos:
-                self.place_obj(self.obstacles[i_obst], max_tries=100)
-                return
             top = tuple(map(add, old_pos, (-1, -1)))
             try:
                 # TODO not random placement!
@@ -88,20 +91,15 @@ class AirsimDynamicObstaclesEnv16x16(AirsimDynamicObstaclesEnv):
 
 register(
     id='Airsim-Dynamic-Obstacles-6x6-v0',
-    entry_point='airsim_envs:DynamicObstaclesEnv6x6'
+    entry_point='airsim_envs:AirsimDynamicObstaclesEnv6x6'
 )
 
 register(
     id='Airsim-Dynamic-Obstacles-Random-6x6-v0',
-    entry_point='airsim_envs:DynamicObstaclesRandomEnv6x6'
-)
-
-register(
-    id='Airsim-Dynamic-Obstacles-8x8-v0',
-    entry_point='airsim_envs:DynamicObstaclesEnv'
+    entry_point='airsim_envs:AirsimDynamicObstaclesRandomEnv6x6'
 )
 
 register(
     id='Airsim-Dynamic-Obstacles-16x16-v0',
-    entry_point='airsim_envs:DynamicObstaclesEnv16x16'
+    entry_point='airsim_envs:AirsimDynamicObstaclesEnv16x16'
 )

@@ -36,8 +36,8 @@ git clone https://github.com/drucej/minigrid_torch.git
 git checkout ccall_dev
 ```
 
-#### 3. Install RL sandbox (includes local mini-grid)
-This essentially ensures code dependencies are permanently 
+#### 3. Install RL sandbox (includes local mini-grid and torch_ac)
+Running pip install essentially ensures code dependencies are permanently 
 available in the conda environment
 ```
 cd <path-to>minigrid_torch
@@ -157,21 +157,34 @@ For evaluating an agent with memory, add memory with the `--memory` argument
 python -m scripts.evaluate --env MiniGrid-RedBlueDoors-6x6-v0 --model RedBlueDoors6 --memory
 ```
 
+### AirSim Environments
 
+The examples above are out-of-the box environments provided by the gym-minigrid codebase. 
+Additionally, there are AirSim specific environments that (**future**) will interact with
+a global planner.  Currently, several don't-step-on-the-grass environments are defined.
+
+```
+python -m scripts.train --algo ppo --env Airsim-GrassS6-v0 --model Grass6 --save-interval 10 --frames 1000000
+
+```
 ## Files
 
 This package contains:
 - scripts to:
   - train an agent \
-  in `script/train.py` ([more details](#scripts-train))
+  in `scripts/train.py` ([more details](#scripts-train))
   - visualize agent's behavior \
-  in `script/visualize.py` ([more details](#scripts-visualize))
+  in `scripts/visualize.py` ([more details](#scripts-visualize))
   - evaluate agent's performances \
-  in `script/evaluate.py` ([more details](#scripts-evaluate))
-- a default agent's model \
-in `model.py` ([more details](#model))
-- utilitarian classes and functions used by the scripts \
-in `utils`
+  in `scripts/evaluate.py` ([more details](#scripts-evaluate))
+  - a default agent's model \
+  in `model.py` ([more details](#model))
+  - utilitarian classes and functions used by the scripts \
+  in `utils`
+  - an ABC AirSim environment definition \
+  in `airsim_env.py` ([more details](#airsim-env))
+  - AirSim environments  \
+    in `airsim_envs/*.py` ([more details](#airsim-envs))
 
 These files are suited for [`gym-minigrid`](https://github.com/maximecb/gym-minigrid) environments and [`torch-ac`](https://github.com/lcswillems/torch-ac) RL algorithms. They are easy to adapt to other environments and RL algorithms by modifying:
 - `model.py`
@@ -273,8 +286,45 @@ parameters of the model constructor.
 
 This model can be easily adapted to your needs.
 
+<h2 id="airsim-env">airsim-env.py</h2>
 
-<h2 id="tensorboard">Tensorboard</h2>
+The RL Sandbox version of `minigrid_env.py` subclasses `ABC` rather than `gym.Env.py`.
+It has a single abstract method: `_gen_grid` and implements the basic agent methods: 
+
+```
+step, reset, render, close, and seed
+```
+
+Additionally, it defines 7 actions:
+
+```
+left, right, forward, pickup, drop, toggle, and done
+```
+
+The RL Sandbox class `airsim_env.py` is a subclass of `minigrid_env.py`.
+It overrides `step` and `render`, and implements `_gen_grid`.  
+It also defines a handful of abstract methods:
+```
+_place_goal, _place_agent, _place_static_obstacles, _place_dynamic_obstacles, 
+_place_waypoint, and set_mission  (possibly _reward and _penalty)
+```
+
+The actions defined by `airsim_env.py` are somewhat different.
+`pickup`, `drop`, and `toggle` are defined (for simplicity of integration) but ignored, 
+and a `jump2` action has been added so the simulations can model the vehicle/robot
+going slowly (`forward`) or fast (`jump2`).
+
+
+
+<h2 id="airsim-envs">airsim-envs/*.py</h2>
+
+The environments defined in `airsim_envs/` subclass `airsim_env.py`.  
+These are currently a work-in-progress and include `grass.py` and `dynamicobstacles.py`.  
+Ultimately, these will fully-implement the `airsim_env.py` abstract methods and 
+will interact with an external `global planner`.
+
+
+<h1 id="tensorboard">Tensorboard</h1>
 
 ### Running Tensorboard
 
@@ -364,7 +414,7 @@ number of steps the agent needed to complete the puzzle for each episode
 
 ![image info](figures/done_at_step.png)
 
-<h2 id="jupyter">Jupyter Notebook</h2>
+<h1 id="jupyter">Jupyter Notebook</h1>
 
 #### Run Jupyter
 

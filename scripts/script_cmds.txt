@@ -46,11 +46,18 @@ python -m scripts.visualize --env Airsim-GrassS5-v0 --model Grass5
 python -m scripts.evaluate --env Airsim-GrassS5-v0 --model Grass5
 
 6x6
-python -m scripts.train --algo ppo --env Airsim-GrassS6-v0 --model Grass6 --save-interval 10 --frames 100000
+python -m scripts.train --algo ppo --env Airsim-GrassS6-v0 --model Grass6 --save-interval 10 --frames 1000000
 python -m scripts.visualize --env Airsim-GrassS6-v0 --model Grass6
 python -m scripts.evaluate --env Airsim-GrassS6-v0 --model Grass6
 
 # 8x8
-python -m scripts.train --algo ppo --env Airsim-GrassS8-v0 --model Grass8 --save-interval 10 --frames 100000
+python -m scripts.train --algo ppo --env Airsim-GrassS8-v0 --model Grass8 --save-interval 10 --frames 1000000
 python -m scripts.visualize --env Airsim-GrassS8-v0 --model Grass8
 python -m scripts.evaluate --env Airsim-GrassS8-v0 --model Grass8
+
+# Dynamic Obstacles -----------------------------------
+
+# 6x6
+python -m scripts.train --algo ppo --env Airsim-Dynamic-Obstacles-6x6-v0 --model Dynamic6 --save-interval 10 --frames 1000000
+python -m scripts.visualize --env Airsim-Dynamic-Obstacles-6x6-v0 --model Dynamic6
+python -m scripts.evaluate --env Airsim-Dynamic-Obstacles-6x6-v0 --model Dynamic6
