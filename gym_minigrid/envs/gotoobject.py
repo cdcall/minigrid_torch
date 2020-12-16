@@ -65,8 +65,8 @@ class GoToObjectEnv(MiniGridEnv):
         self.mission = 'go to the %s' % descStr
         #print(self.mission)
 
-    def step(self, action):
-        obs, reward, done, info = MiniGridEnv.step(self, action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = MiniGridEnv.step(self, action, logger)
 
         ax, ay = self.agent_pos
         tx, ty = self.target_pos

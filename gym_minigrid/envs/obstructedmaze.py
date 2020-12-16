@@ -39,8 +39,8 @@ class ObstructedMazeEnv(RoomGrid):
 
         self.mission = "pick up the %s ball" % self.ball_to_find_color
 
-    def step(self, action):
-        obs, reward, done, info = super().step(action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = super().step(action, logger)
 
         if action == self.actions.pickup:
             if self.carrying and self.carrying == self.obj:

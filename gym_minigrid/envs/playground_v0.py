@@ -66,9 +66,9 @@ class PlaygroundV0(MiniGridEnv):
         # No explicit mission in this environment
         self.mission = ''
 
-    def step(self, action):
-        obs, reward, done, info = MiniGridEnv.step(self, action)
-        return obs, reward, done, info
+    # def step(self, action):
+    #     obs, reward, done, info = MiniGridEnv.step(self, action)
+    #     return obs, reward, done, info
 
 register(
     id='MiniGrid-Playground-v0',

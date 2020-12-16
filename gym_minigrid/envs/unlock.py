@@ -30,8 +30,8 @@ class Unlock(RoomGrid):
         self.door = door
         self.mission = "open the door"
 
-    def step(self, action):
-        obs, reward, done, info = super().step(action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = super().step(action, logger)
 
         if action == self.actions.toggle:
             if self.door.is_open:

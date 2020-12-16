@@ -1,0 +1,7 @@
+gym~=0.17.3
+numpy~=1.18.5
+torch~=1.7.0
+matplotlib~=3.3.3
+tensorboardx~=2.1
+array2gif~=1.0.4
+setuptools~=50.3.1

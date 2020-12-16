@@ -57,7 +57,7 @@ class DynamicObstaclesEnv(MiniGridEnv):
 
         self.mission = "get to the green goal square"
 
-    def step(self, action):
+    def step(self, action, logger=None):
         # Invalid action
         if action >= self.action_space.n:
             action = 0
@@ -70,7 +70,6 @@ class DynamicObstaclesEnv(MiniGridEnv):
         for i_obst in range(len(self.obstacles)):
             old_pos = self.obstacles[i_obst].cur_pos
             top = tuple(map(add, old_pos, (-1, -1)))
-
             try:
                 self.place_obj(self.obstacles[i_obst], top=top, size=(3,3), max_tries=100)
                 self.grid.set(*old_pos, None)
@@ -78,7 +77,7 @@ class DynamicObstaclesEnv(MiniGridEnv):
                 pass
 
         # Update the agent's position/direction
-        obs, reward, done, info = MiniGridEnv.step(self, action)
+        obs, reward, done, info = MiniGridEnv.step(self, action, logger)
 
         # If the agent tried to walk over an obstacle or wall
         if action == self.actions.forward and not_clear:

@@ -354,12 +354,12 @@ In addition to optionally writing out an animated gif showing all the agent's ac
 the user can set flags in the call to `visualize.py` to log agent actions every `<n>` episodes (default is 100).  This allows
 the user to step through the agent's choices and actions per episode.
 
-**Note** the breadcrumbs showing the path the agent took, and the newly-added patch of grass.
+**Note** the breadcrumbs showing the path the agent took to avoid the patches of grass.
 
-![image info](figures/stepped_on_grass.png)
+![image info](figures/avoiding_grass.png)
 
 There's also an experimental time-series graph that plots the
-number of steps the agent needed to complete the puzzle for each episode
+number of steps the agent needed to complete the puzzle for each episode  
 (not very useful for the visualization case).
 
 ![image info](figures/done_at_step.png)

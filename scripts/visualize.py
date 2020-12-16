@@ -1,8 +1,7 @@
 import argparse
 import numpy
-import torch
 from utils.output_utils import OutputUtils
-import utils
+from utils.storage import *
 
 
 # Parse arguments
@@ -51,7 +50,7 @@ print(f"Device: {device}\n")
 env = utils.make_env(args.env, args.seed)
 for _ in range(args.shift):
     env.reset()
-print("Environment loaded\n")
+print(f"{args.env} Environment loaded\n")
 
 # Load agent
 
@@ -60,8 +59,11 @@ agent = utils.Agent(env.observation_space, env.action_space, model_dir,
                     device=device, argmax=args.argmax, use_memory=args.memory, use_text=args.text)
 print("Agent loaded\n")
 
-tb_dir = model_dir + "/Visualize"
-output_utils = OutputUtils(tb_dir, tb_dir)
+# set up loggers
+
+log_dir = model_dir + "/Visualize"
+output_utils = OutputUtils(log_dir, log_dir)
+step_logger = utils.get_txt_logger(log_dir)
 
 # Run the agent
 
@@ -72,12 +74,19 @@ frames = []
 
 episode_step = 0
 for episode in range(args.episodes):
+
+    if episode_step % args.episode_step == 0:
+        step_logger.info(f"\n\n------------------------------------------ episode {episode_step}\n")
+
     obs = env.reset()
     img_step = 0
     while True:
 
+        log_actions = False
+
         # log images to tensorboard
         if episode_step % args.episode_step == 0:
+            log_actions = True
             if img_step % args.img_step == 0:
                 frame = numpy.moveaxis(env.render("rgb_array"), 2, 0)
                 title = "agent_progress_episode_" + str(episode_step)
@@ -89,8 +98,17 @@ for episode in range(args.episodes):
             frames.append(numpy.moveaxis(env.render("rgb_array"), 2, 0))
 
         action = agent.get_action(obs)
-        obs, reward, done, _ = env.step(action)
-        agent.analyze_feedback(reward, done)
+        obs, reward, done, info_dict = env.step(action, logger=step_logger)
+
+        extra_steps = info_dict.get("extra_steps")
+        if extra_steps:
+            img_step += extra_steps
+
+        ignored = info_dict.get("ignored")
+        if ignored:
+            img_step -= 1
+        else:
+            agent.analyze_feedback(reward, done)
 
         if done:
             # show number of steps agent took to solve the puzzle for this episode

@@ -1,4 +1,4 @@
-from .world_obj import *
+from gym_minigrid.world_obj import *
 from abc import ABC
 
 
@@ -121,8 +121,6 @@ class Grid(ABC):
             subdivs=3
     ):
 
-        # print(f"      render tile / breadcrumb {breadcrumb}")
-
         """
         Render a tile and cache the result
         """
@@ -160,7 +158,6 @@ class Grid(ABC):
 
         # render breadcrumb if needed
         if breadcrumb:
-            print("                  ------------drawing breadcrumb")
             fill_coords(img, point_in_circle(cx=0.5, cy=0.5, r=0.125), (255, 255, 255))
 
         # Downsample the image to perform supersampling/anti-aliasing

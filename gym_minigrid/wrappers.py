@@ -25,8 +25,8 @@ class ReseedWrapper(gym.core.Wrapper):
         self.env.seed(seed)
         return self.env.reset(**kwargs)
 
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = self.env.step(action, logger)
         return obs, reward, done, info
 
 class ActionBonus(gym.core.Wrapper):
@@ -40,8 +40,8 @@ class ActionBonus(gym.core.Wrapper):
         super().__init__(env)
         self.counts = {}
 
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = self.env.step(action, logger)
 
         env = self.unwrapped
         tup = (tuple(env.agent_pos), env.agent_dir, action)
@@ -73,8 +73,8 @@ class StateBonus(gym.core.Wrapper):
         super().__init__(env)
         self.counts = {}
 
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = self.env.step(action, logger)
 
         # Tuple based on which we index the counts
         # We use the position after an update
@@ -329,8 +329,8 @@ class ViewSizeWrapper(gym.core.Wrapper):
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)
 
-    def step(self, action):
-        return self.env.step(action)
+    def step(self, action, logger=None):
+        return self.env.step(action, logger)
 
 from .minigrid_env import Goal
 class DirectionObsWrapper(gym.core.ObservationWrapper):

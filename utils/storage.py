@@ -3,8 +3,9 @@ import os
 import torch
 import logging
 import sys
-
 import utils
+
+loggers = {}
 
 
 def create_folders_if_necessary(path):
@@ -46,20 +47,41 @@ def get_model_state(model_dir):
     return get_status(model_dir)["model_state"]
 
 
-def get_txt_logger(model_dir):
-    path = os.path.join(model_dir, "log.txt")
+def get_txt_logger(model_dir, log_name="log.txt"):
+
+    """
+    updated so there can be a logger per process
+    :param model_dir:
+    :param log_name:
+    :return:
+    """
+
+    path = os.path.join(model_dir, log_name)
     utils.create_folders_if_necessary(path)
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(message)s",
-        handlers=[
-            logging.FileHandler(filename=path),
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
+    if loggers.get(log_name):
+        return loggers.get(log_name)
 
-    return logging.getLogger()
+    logger = logging.getLogger(log_name)
+    logger.setLevel(logging.INFO)
+
+    formatter = logging.Formatter('%(message)s')
+
+    # console handler
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.INFO)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    # file handler
+    fh = logging.FileHandler(filename=path)
+    fh.setLevel(logging.INFO)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    loggers[log_name] = logger
+
+    return logger
 
 
 def get_csv_logger(model_dir):
