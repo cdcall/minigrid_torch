@@ -99,7 +99,6 @@ class PPOAlgo(BaseAlgo):
                 batch_loss /= self.recurrence
 
                 # Update actor-critic
-
                 self.optimizer.zero_grad()
                 batch_loss.backward()
                 grad_norm = sum(p.grad.data.norm(2).item() ** 2 for p in self.acmodel.parameters()) ** 0.5

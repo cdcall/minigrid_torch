@@ -14,7 +14,7 @@ class AirsimEnv(MiniGridEnv):
     """
 
     # Override superclass actions
-    class Actions(IntEnum):
+    class NotActions(IntEnum):
         left = 0
         right = 1
         forward = 2
@@ -28,6 +28,16 @@ class AirsimEnv(MiniGridEnv):
         jump2 = 7    # forward 2 tiles
         # jump3 = 8    # forward 3 tiles
 
+    class Actions(IntEnum):
+        left = 0
+        right = 1
+        forward = 2
+        # Done completing task
+        done = 3
+        # jump tiles
+        jump2 = 4    # forward 2 tiles
+        # jump3 = 5    # forward 3 tiles
+
     def __init__(self, grid_size=None, width=None, height=None, max_steps=100, see_through_walls=False,
                  seed=1337, agent_view_size=7):
 
@@ -38,10 +48,10 @@ class AirsimEnv(MiniGridEnv):
         self.action_space = spaces.Discrete(len(self.actions))
 
         # Range of possible rewards  TODO
-        self.reward_range = (0, 1)
+        self.reward_range = (-1, 1)
 
         # Range of possible penalties  TODO
-        self.penalty_range = (-1, 1)
+        self.penalty_range = (0, 1)
 
     # -----------------------------------------------------
     # gym.Env basic agent methods
@@ -52,7 +62,6 @@ class AirsimEnv(MiniGridEnv):
         reward = 0
         penalty = 0
         done = False
-        ignored = False
         extra_steps = 0
 
         # TODO this is how it is done in gym-minigrid, but I'd be happier if this call was last
@@ -61,11 +70,11 @@ class AirsimEnv(MiniGridEnv):
 
         # Rotate left
         if action == self.actions.left:
-            self._rotate_left(logger)
+            super()._rotate_left(logger)
 
         # Rotate right
         elif action == self.actions.right:
-            self._rotate_right(logger)
+            super()._rotate_right(logger)
 
         # Done action (not used by default)
         elif action == self.actions.done:
@@ -73,26 +82,28 @@ class AirsimEnv(MiniGridEnv):
 
         # Move or jump forward (or an ignored action)
         elif action != self.actions.done:
+
             if action == self.actions.forward:
                 if logger:
                     logger.info("    fwd")
                 n_cells = 1
+
             elif action == self.actions.jump2:
                 if logger:
                     logger.info("    jump2")
                 n_cells = 2
                 extra_steps = 1
+
             # elif action == self.actions.jump3:
             #     if logger:
             #         logger.info("    jump3")
             #     n_cells = 3
-            else:
-                # not using pickup, drop, or toggle
-                # step count isn't incremented
-                n_cells = 0
-                ignored = True
+            #     extra_steps = 2
 
-            if not ignored:
+            else:
+                n_cells = 0
+
+            if n_cells:
                 done, reward, penalty = self._move_forward(n_cells, logger)
 
         # error case
@@ -101,12 +112,13 @@ class AirsimEnv(MiniGridEnv):
 
         if self.step_count >= self.max_steps:
             done = True
-            print("\n max steps reached\n")
+            if logger:
+                logger.info("    max steps reached")
 
         obs = self.gen_obs()
 
-        # TODO is my definition of Info the right idea ??
-        return obs, reward, done, {"penalty": penalty, "ignored": ignored, "extra_steps": extra_steps}
+        info_dict = {"penalty": penalty, "extra_steps": extra_steps}
+        return obs, reward, done, info_dict
 
     # similar to superclass except highlight is False by default
     def render(self, mode='rgb_array', close=False, highlight=False, tile_size=TILE_PIXELS):
@@ -145,8 +157,6 @@ class AirsimEnv(MiniGridEnv):
 
     def _move_forward(self, n_cells, logger):
 
-        print(f"move forward {n_cells}")
-
         done = False
         reward = 0
         penalty = 0
@@ -160,8 +170,8 @@ class AirsimEnv(MiniGridEnv):
 
             # move forward one
             if not front_cell or front_cell.can_overlap():
-                self.step_count += 1
-                self._step_forward(logger)
+                # self.step_count += 1
+                super()._step_forward(logger)
 
             if front_cell and front_cell.type == 'goal':
                 if logger:
@@ -175,13 +185,9 @@ class AirsimEnv(MiniGridEnv):
                 break
 
             elif front_cell and front_cell.type == 'grass':
-                if logger:
-                    logger.info(f"        -------------walked on grass at step {self.step_count} \n")
                 penalty = self._penalty()
-                # TODO penalty isn't working yet
-                # pass
-                done = True
-                break
+                if logger:
+                    logger.info(f"        -------------walked on grass at step {self.step_count}")
 
             elif front_cell and front_cell.type != 'goal':
                 if logger:
@@ -219,14 +225,13 @@ class AirsimEnv(MiniGridEnv):
     def _set_mission(self):
         pass
 
-    # TODO _reward and _penalty are good candidates for abstract methods
-
     def _reward(self):
         """
         Compute the reward to be given upon success
         """
         return 1 - 0.9 * (self.step_count / self.max_steps)
 
-    def _penalty(self):
-        # TODO compute the penalty (vs. setting state to done) for doing a bad thing
-        return 1 - 0.9 * (self.step_count / self.max_steps)
+    @staticmethod
+    def _penalty():
+        # simple penalty as it's not dependent on which step and may occur multiple times
+        return 0.25

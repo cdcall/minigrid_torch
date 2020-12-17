@@ -85,9 +85,6 @@ class MiniGridEnv(ABC):  # (gym.Env):
         # Range of possible rewards  # TODO these are overridden in dynamic env for example
         self.reward_range = (0, 1)
 
-        # Range of possible penalties
-        self.penalty_range = (0, 1)
-
         # Environment configuration
         self.width = width
         self.height = height
@@ -113,7 +110,7 @@ class MiniGridEnv(ABC):  # (gym.Env):
 
     def step(self, action, logger=None):
 
-        self.step_count += 1
+        # self.step_count += 1
 
         reward = 0
         done = False
@@ -267,6 +264,7 @@ class MiniGridEnv(ABC):  # (gym.Env):
         self.agent_dir = (self.agent_dir + 1) % 4
 
     def _step_forward(self, logger=None):
+        self.step_count += 1
         # add last agent position to breadcrumbs
         self.breadcrumbs[self.agent_pos[0], self.agent_pos[1]] = True
         self.agent_pos = self.front_pos
@@ -619,13 +617,14 @@ class MiniGridEnv(ABC):  # (gym.Env):
 
         return vx, vy
 
+    # TODO No usages
     def in_view(self, x, y):
         """
         check if a grid position is visible to the agent
         """
-
         return self.relative_coords(x, y) is not None
 
+    # TODO One usage, but it's a test
     def agent_sees(self, x, y):
         """
         Check if a non-empty grid position is visible to the agent

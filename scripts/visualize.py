@@ -104,11 +104,7 @@ for episode in range(args.episodes):
         if extra_steps:
             img_step += extra_steps
 
-        ignored = info_dict.get("ignored")
-        if ignored:
-            img_step -= 1
-        else:
-            agent.analyze_feedback(reward, done)
+        agent.analyze_feedback(reward, done)
 
         if done:
             # show number of steps agent took to solve the puzzle for this episode

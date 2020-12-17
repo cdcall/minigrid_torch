@@ -40,10 +40,14 @@ class BaseAlgo(ABC):
         preprocess_obss : function
             a function that takes observations returned by the environment
             and converts them into the format that the model can handle
+
+
         reshape_reward : function
             a function that shapes the reward, takes an
             (observation, action, reward, done) tuple as an input
         """
+
+        # TODO reshape to also include penalty
 
         # Store parameters
 
@@ -90,6 +94,8 @@ class BaseAlgo(ABC):
         self.actions = torch.zeros(*shape, device=self.device, dtype=torch.int)
         self.values = torch.zeros(*shape, device=self.device)
         self.rewards = torch.zeros(*shape, device=self.device)
+        # TODO trying with penalty simply lowers the reward
+        # self.penalties = torch.zeros(*shape, device=self.device)
         self.advantages = torch.zeros(*shape, device=self.device)
         self.log_probs = torch.zeros(*shape, device=self.device)
 
@@ -114,7 +120,7 @@ class BaseAlgo(ABC):
         Returns
         -------
         exps : DictList
-            Contains actions, rewards, advantages etc as attributes.
+            Contains actions, rewards, penalties, advantages etc as attributes.
             Each attribute, e.g. `exps.reward` has a shape
             (self.num_frames_per_proc * num_envs, ...). k-th block
             of consecutive `self.num_frames_per_proc` frames contains
@@ -128,15 +134,23 @@ class BaseAlgo(ABC):
         for i in range(self.num_frames_per_proc):
             # Do one agent-environment interaction
 
-            preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
-            with torch.no_grad():
-                if self.acmodel.recurrent:
-                    dist, value, memory = self.acmodel(preprocessed_obs, self.memory * self.mask.unsqueeze(1))
-                else:
-                    dist, value = self.acmodel(preprocessed_obs)
+            memory = None
+            if self.acmodel.recurrent:
+                dist, value, memory = self._model_forward()
+            else:
+                dist, value = self._model_forward()
+
+            # TODO no sampling -- get instructions from global planner
             action = dist.sample()
 
-            obs, reward, done, _ = self.env.step(action.cpu().numpy())
+            obs, reward, done, info_dict = self.env.step(action.cpu().numpy())
+
+            # update rewards based on any penalties incurred
+            penalties = [0] * self.num_procs
+            if info_dict and "penalty" in info_dict[0]:
+                for p in range(self.num_procs):
+                    penalties[p] = info_dict[p].get("penalty")
+                reward = tuple(map(lambda q, r: q - r, reward, tuple(penalties)))
 
             # Update experiences values
 
@@ -149,6 +163,8 @@ class BaseAlgo(ABC):
             self.mask = 1 - torch.tensor(done, device=self.device, dtype=torch.float)
             self.actions[i] = action
             self.values[i] = value
+
+            # NOTE:  reshape_reward isn't currently used
             if self.reshape_reward is not None:
                 self.rewards[i] = torch.tensor([
                     self.reshape_reward(obs_, action_, reward_, done_)
@@ -156,6 +172,7 @@ class BaseAlgo(ABC):
                 ], device=self.device)
             else:
                 self.rewards[i] = torch.tensor(reward, device=self.device)
+                # self.penalties[i] = torch.tensor(penalty, device=self.device)
             self.log_probs[i] = dist.log_prob(action)
 
             # Update log values
@@ -177,12 +194,10 @@ class BaseAlgo(ABC):
 
         # Add advantage and return to experiences
 
-        preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
-        with torch.no_grad():
-            if self.acmodel.recurrent:
-                _, next_value, _ = self.acmodel(preprocessed_obs, self.memory * self.mask.unsqueeze(1))
-            else:
-                _, next_value = self.acmodel(preprocessed_obs)
+        if self.acmodel.recurrent:
+            _, next_value, _ = self._model_forward()
+        else:
+            _, next_value = self._model_forward()
 
         for i in reversed(range(self.num_frames_per_proc)):
             next_mask = self.masks[i+1] if i < self.num_frames_per_proc - 1 else self.mask
@@ -213,6 +228,7 @@ class BaseAlgo(ABC):
         exps.action = self.actions.transpose(0, 1).reshape(-1)
         exps.value = self.values.transpose(0, 1).reshape(-1)
         exps.reward = self.rewards.transpose(0, 1).reshape(-1)
+        # TODO exps.penalty = self.penalties.transpose(0, 1).reshape(-1)
         exps.advantage = self.advantages.transpose(0, 1).reshape(-1)
         exps.returnn = exps.value + exps.advantage
         exps.log_prob = self.log_probs.transpose(0, 1).reshape(-1)
@@ -238,6 +254,14 @@ class BaseAlgo(ABC):
         self.log_num_frames = self.log_num_frames[-self.num_procs:]
 
         return exps, logs
+
+    def _model_forward(self):
+        preprocessed_obs = self.preprocess_obss(self.obs, device=self.device)
+        with torch.no_grad():
+            if self.acmodel.recurrent:
+                return self.acmodel(preprocessed_obs, self.memory * self.mask.unsqueeze(1))
+            else:
+                return self.acmodel(preprocessed_obs)
 
     @abstractmethod
     def update_parameters(self, exps):

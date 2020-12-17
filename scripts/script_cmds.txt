@@ -41,7 +41,7 @@ python -m scripts.evaluate --env MiniGrid-LavaGapS6-v0 --model LavaGap6
 # Grass Patch -----------------------------------
 
 # 5x5
-python -m scripts.train --algo ppo --env Airsim-GrassS5-v0 --model Grass5 --save-interval 10 --frames 100000
+python -m scripts.train --algo ppo --env Airsim-GrassS5-v0 --model Grass5 --save-interval 10 --frames 1000000
 python -m scripts.visualize --env Airsim-GrassS5-v0 --model Grass5
 python -m scripts.evaluate --env Airsim-GrassS5-v0 --model Grass5
 
