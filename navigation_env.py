@@ -6,27 +6,12 @@ from gym_minigrid.world_obj import *
 from abc import abstractmethod
 
 
-class AirsimEnv(MiniGridEnv):
+class NavigationEnv(MiniGridEnv):
 
     """
-    2D grid world game environment that simulates actions available in AirSim and Alpaca
+    2D grid world game environment that simulates simple navigation actions available in AirSim and Alpaca
     subclass of gym_minigrid MiniGridEnv which is an ABC
     """
-
-    # Override superclass actions
-    class NotActions(IntEnum):
-        left = 0
-        right = 1
-        forward = 2
-        # these 3 are ignored
-        pickup = 3
-        drop = 4
-        toggle = 5
-        # Done completing task
-        done = 6
-        # jump tiles
-        jump2 = 7    # forward 2 tiles
-        # jump3 = 8    # forward 3 tiles
 
     class Actions(IntEnum):
         left = 0
@@ -199,7 +184,7 @@ class AirsimEnv(MiniGridEnv):
         return done, reward, penalty
 
     # ------------------------------------------------------------
-    # Airsim Env Abstract methods
+    # Navigation Env Abstract methods
 
     @abstractmethod
     def _place_goal(self):

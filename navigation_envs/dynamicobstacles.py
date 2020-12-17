@@ -1,9 +1,9 @@
 from gym_minigrid.register import register
 from operator import add
-from airsim_env import *
+from navigation_env import *
 
 
-class AirsimDynamicObstaclesEnv(AirsimEnv):
+class NavigationDynamicObstaclesEnv(NavigationEnv):
     """
     Single-room square grid environment with moving obstacles
     """
@@ -74,32 +74,32 @@ class AirsimDynamicObstaclesEnv(AirsimEnv):
         self.mission = "get to the green goal square"
 
 
-class AirsimDynamicObstaclesEnv6x6(AirsimDynamicObstaclesEnv):
+class NavigationDynamicObstaclesEnv6x6(NavigationDynamicObstaclesEnv):
     def __init__(self):
         super().__init__(size=6, n_obstacles=3)
 
 
-class AirsimDynamicObstaclesRandomEnv6x6(AirsimDynamicObstaclesEnv):
+class NavigationDynamicObstaclesRandomEnv6x6(NavigationDynamicObstaclesEnv):
     def __init__(self):
         super().__init__(size=6, agent_start_pos=None, n_obstacles=3)
 
 
-class AirsimDynamicObstaclesEnv16x16(AirsimDynamicObstaclesEnv):
+class NavigationDynamicObstaclesEnv16x16(NavigationDynamicObstaclesEnv):
     def __init__(self):
         super().__init__(size=16, n_obstacles=8)
 
 
 register(
-    id='Airsim-Dynamic-Obstacles-6x6-v0',
-    entry_point='airsim_envs:AirsimDynamicObstaclesEnv6x6'
+    id='Navigation-Dynamic-Obstacles-6x6-v0',
+    entry_point='navigation_envs:NavigationDynamicObstaclesEnv6x6'
 )
 
 register(
-    id='Airsim-Dynamic-Obstacles-Random-6x6-v0',
-    entry_point='airsim_envs:AirsimDynamicObstaclesRandomEnv6x6'
+    id='Navigation-Dynamic-Obstacles-Random-6x6-v0',
+    entry_point='navigation_envs:NavigationDynamicObstaclesRandomEnv6x6'
 )
 
 register(
-    id='Airsim-Dynamic-Obstacles-16x16-v0',
-    entry_point='airsim_envs:AirsimDynamicObstaclesEnv16x16'
+    id='Navigation-Dynamic-Obstacles-16x16-v0',
+    entry_point='navigation_envs:NavigationDynamicObstaclesEnv16x16'
 )

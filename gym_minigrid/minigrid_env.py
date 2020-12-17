@@ -11,7 +11,7 @@ class MiniGridEnv(ABC):  # (gym.Env):
 
     """
     2D grid world game environment base class
-    that sits between base gym.Env and airsim environments
+    that sits between base gym.Env and navigation environments
     """
 
     metadata = {

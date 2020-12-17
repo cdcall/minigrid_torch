@@ -1,10 +1,10 @@
 from gym_minigrid.register import register
 from gym_minigrid.world_obj import Grass, Goal
 import numpy as np
-from airsim_env import AirsimEnv
+from navigation_env import NavigationEnv
 
 
-class GrassEnv(AirsimEnv):
+class GrassEnv(NavigationEnv):
     """
     Environment with one or more patches of grass which incur a penalty.
     """
@@ -59,32 +59,32 @@ class GrassEnv(AirsimEnv):
         )
 
 
-class AirsimGrassS5Env(GrassEnv):
+class NavigationGrassS5Env(GrassEnv):
     def __init__(self):
         super().__init__(size=5,  n_patches=1)
 
 
-class AirsimGrassS6Env(GrassEnv):
+class NavigationGrassS6Env(GrassEnv):
     def __init__(self):
         super().__init__(size=6, n_patches=2)
 
 
-class AirsimGrassS8Env(GrassEnv):
+class NavigationGrassS8Env(GrassEnv):
     def __init__(self):
         super().__init__(size=8, n_patches=4)
 
 
 register(
-    id='Airsim-GrassS5-v0',
-    entry_point='airsim_envs:AirsimGrassS5Env'
+    id='Navigation-GrassS5-v0',
+    entry_point='navigation_envs:NavigationGrassS5Env'
 )
 
 register(
-    id='Airsim-GrassS6-v0',
-    entry_point='airsim_envs:AirsimGrassS6Env'
+    id='Navigation-GrassS6-v0',
+    entry_point='navigation_envs:NavigationGrassS6Env'
 )
 
 register(
-    id='Airsim-GrassS8-v0',
-    entry_point='airsim_envs:AirsimGrassS8Env'
+    id='Navigation-GrassS8-v0',
+    entry_point='navigation_envs:NavigationGrassS8Env'
 )

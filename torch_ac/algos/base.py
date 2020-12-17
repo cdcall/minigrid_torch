@@ -151,6 +151,7 @@ class BaseAlgo(ABC):
                 for p in range(self.num_procs):
                     penalties[p] = info_dict[p].get("penalty")
                 reward = tuple(map(lambda q, r: q - r, reward, tuple(penalties)))
+                # TODO change to p and r!!
 
             # Update experiences values
 
