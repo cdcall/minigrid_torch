@@ -23,7 +23,10 @@ class GrassEnv(NavigationEnv):
             grid_size=size,
             max_steps=4*size*size,
             # Set this to True for maximum speed
-            see_through_walls=False
+            see_through_walls=False,
+            use_global_planner=True,
+            use_carrot_stick_waypoint=False,
+            waypoint_distance=3
         )
 
     def _place_goal(self):
