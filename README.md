@@ -167,6 +167,15 @@ a global planner.  Currently, several don't-step-on-the-grass environments are d
 python -m scripts.train --algo ppo --env Navigation-GrassS6-v0 --model Grass6 --save-interval 10 --frames 1000000
 
 ```
+
+### Global Planner
+
+Both the minigrid and navigation environments support using a global planner that finds the shortest obstacle free path (currently it does not reason about the cost of rotation) and provides waypoints along this path for the agent.
+Global planner is by default enabled for navigation environments. In order to enable/disable it for any specific environment, set the `use_global_planner` argument upon instantiation. Moreover, the argument `waypoint_distance` defines the distance between consecutive waypoints. The full planned path is visualized with small green dots (not observable to the agent) and the waypoints are visualized as dark-green cells that are visible to the agent. The following figure shows an example planned path and the waypoints.
+
+<img src="figures/planner_example.png" alt="planner_example" width="400"/>
+
+
 ## Files
 
 This package contains:

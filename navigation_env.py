@@ -23,10 +23,19 @@ class NavigationEnv(MiniGridEnv):
         jump2 = 4    # forward 2 tiles
         # jump3 = 5    # forward 3 tiles
 
-    def __init__(self, grid_size=None, width=None, height=None, max_steps=100, see_through_walls=False,
-                 seed=1337, agent_view_size=7):
+    def __init__(self, 
+                grid_size=None, 
+                width=None, 
+                height=None, 
+                max_steps=100, 
+                see_through_walls=False,
+                seed=1337, 
+                agent_view_size=7,
+                use_global_planner=True,
+                use_carrot_stick_waypoint=False,
+                waypoint_distance=6):
 
-        super().__init__(grid_size, width, height, max_steps, see_through_walls, seed, agent_view_size)
+        super().__init__(grid_size, width, height, max_steps, see_through_walls, seed, agent_view_size, use_global_planner, use_carrot_stick_waypoint, waypoint_distance)
 
         # Override superclass actions
         self.actions = self.Actions
@@ -102,11 +111,19 @@ class NavigationEnv(MiniGridEnv):
 
         obs = self.gen_obs()
 
+        if self.use_global_planner:
+            if not self.static_plan or not self.global_planner.path_found:
+                self.global_planner.update_agent(self.agent_pos)
+                self.global_planner.update_map()
+                self.global_planner.replan()
+                self.global_plan = self.global_planner.get_path()
+                self.waypoints = self.global_planner.get_waypoints()
+
         info_dict = {"penalty": penalty, "extra_steps": extra_steps}
         return obs, reward, done, info_dict
 
     # similar to superclass except highlight is False by default
-    def render(self, mode='rgb_array', close=False, highlight=False, tile_size=TILE_PIXELS):
+    def render(self, mode='rgb_array', close=False, highlight=False, visualize_plan = True, tile_size=TILE_PIXELS):
         if close:
             return
         highlight_mask = None
@@ -117,7 +134,8 @@ class NavigationEnv(MiniGridEnv):
             self.agent_pos,
             self.agent_dir,
             highlight_mask=highlight_mask,
-            breadcrumbs=self.breadcrumbs
+            breadcrumbs=self.breadcrumbs,
+            global_plan=self.global_plan if (visualize_plan and self.use_global_planner) else None
         )
         return img
 
@@ -149,6 +167,7 @@ class NavigationEnv(MiniGridEnv):
         for i in range(n_cells):
 
             front_cell = self.grid.get(*self.front_pos)
+            front_pos = self.front_pos
 
             if front_cell and logger:
                 logger.info(f"        front {front_cell.type}")
@@ -173,6 +192,13 @@ class NavigationEnv(MiniGridEnv):
                 penalty = self._penalty()
                 if logger:
                     logger.info(f"        -------------walked on grass at step {self.step_count}")
+            
+            elif front_cell and front_cell.type == 'waypoint':
+                # Remove the waypoint upon reaching it
+                self.grid.set(*front_pos, None)
+
+                # TODO: We probably want to provide some positive reward
+                # for reaching waypoints
 
             elif front_cell and front_cell.type != 'goal':
                 if logger:
