@@ -28,9 +28,6 @@ class GrassEnv(NavigationEnv):
             use_carrot_stick_waypoint=False,
             waypoint_distance=3
         )
-            # use_global_planner=True,
-            # use_carrot_stick_waypoint=False,
-            # waypoint_distance=3
 
     def _place_goal(self):
         # Place a goal square in the bottom-right corner
