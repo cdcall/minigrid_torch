@@ -10,7 +10,10 @@ class DoorKeyEnv(MiniGridEnv):
     def __init__(self, size=8):
         super().__init__(
             grid_size=size,
-            max_steps=10*size*size
+            max_steps=10*size*size,
+            use_global_planner=False,
+            use_carrot_stick_waypoint=False,
+            waypoint_distance=3
         )
 
     def _gen_grid(self, width, height):

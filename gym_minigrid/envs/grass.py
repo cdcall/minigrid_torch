@@ -19,7 +19,10 @@ class GrassEnv(MiniGridEnv):
             max_steps=4*size*size,
             # Set this to True for maximum speed
             see_through_walls=False,
-            seed=seed
+            seed=seed,
+            use_global_planner=True,
+            use_carrot_stick_waypoint=False,
+            waypoint_distance=3
         )
 
     def _gen_grid(self, width, height):

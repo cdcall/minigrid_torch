@@ -42,6 +42,11 @@ class WorldObj(ABC):
         pass  # return True
 
     @abstractmethod
+    def can_traverse(self):
+        """Can the agent safely traverse this?"""
+        pass  # return False
+
+    @abstractmethod
     def toggle(self, env, pos):
         """Method to trigger/toggle an action this object performs"""
         pass  # return False
@@ -87,6 +92,8 @@ class WorldObj(ABC):
             v = Lava()
         elif obj_type == 'grass':
             v = Grass()
+        elif obj_type == 'waypoint':
+            v = WayPoint()
         else:
             assert False, "unknown object type in decode '%s'" % obj_type
 
@@ -109,6 +116,9 @@ class Goal(WorldObj):
         return False  # TODO True?
 
     def see_behind(self):
+        return True
+
+    def can_traverse(self):
         return True
 
     def toggle(self, env, pos):
@@ -138,6 +148,9 @@ class Floor(WorldObj):
     def see_behind(self):
         return True
 
+    def can_traverse(self):
+        return True
+
     def toggle(self, env, pos):
         return False
 
@@ -162,6 +175,9 @@ class Lava(WorldObj):
 
     def see_behind(self):
         return True
+
+    def can_traverse(self):
+        return False
 
     def toggle(self, env, pos):
         return False
@@ -199,6 +215,9 @@ class Grass(WorldObj):
     def see_behind(self):
         return True
 
+    def can_traverse(self):
+        return True
+
     def toggle(self, env, pos):
         return False
 
@@ -234,6 +253,9 @@ class Wall(WorldObj):
     def see_behind(self):
         return False
 
+    def can_traverse(self):
+        return False
+
     def toggle(self, env, pos):
         return False
 
@@ -259,6 +281,9 @@ class Door(WorldObj):
 
     def see_behind(self):
         return self.is_open
+
+    def can_traverse(self):
+        return not self.is_locked
 
     def toggle(self, env, pos):
         # If the player has the right key to open the door
@@ -327,6 +352,9 @@ class Key(WorldObj):
     def see_behind(self):
         return True
 
+    def can_traverse(self):
+        return True
+
     def toggle(self, env, pos):
         return False
 
@@ -362,6 +390,9 @@ class Ball(WorldObj):
     def see_behind(self):
         return True
 
+    def can_traverse(self):
+        return False
+
     def toggle(self, env, pos):
         return False
 
@@ -386,6 +417,9 @@ class Box(WorldObj):
     def see_behind(self):
         return True
 
+    def can_traverse(self):
+        return True
+
     def toggle(self, env, pos):
         # Replace the box by its contents
         env.grid.set(*pos, self.contains)
@@ -400,3 +434,29 @@ class Box(WorldObj):
 
         # Horizontal slit
         fill_coords(img, point_in_rect(0.16, 0.84, 0.47, 0.53), c)
+
+class WayPoint(WorldObj):
+  
+    def __init__(self):
+        super().__init__('waypoint', 'darkgreen')
+
+    def can_contain(self):
+        return True
+
+    def can_overlap(self):
+        return True
+
+    def can_pickup(self):
+        return False
+
+    def see_behind(self):
+        return True
+
+    def can_traverse(self):
+        return True
+
+    def toggle(self, env, pos):
+        return False
+
+    def render(self, img):
+        fill_coords(img, point_in_rect(0, 1, 0, 1), COLORS[self.color])

@@ -117,6 +117,7 @@ class Grid(ABC):
             agent_dir=None,
             highlight=False,
             breadcrumb=False,
+            is_on_global_plan=False,
             tile_size=TILE_PIXELS,
             subdivs=3
     ):
@@ -128,7 +129,7 @@ class Grid(ABC):
         """
 
         # Hash map lookup key for the cache
-        key = (agent_dir, highlight, tile_size, breadcrumb)
+        key = (agent_dir, highlight, tile_size, breadcrumb, is_on_global_plan)
         key = obj.encode() + key if obj else key
 
         if key in cls.tile_cache:
@@ -163,6 +164,12 @@ class Grid(ABC):
             print("                  ------------drawing breadcrumb")
             fill_coords(img, point_in_circle(cx=0.5, cy=0.5, r=0.125), (255, 255, 255))
 
+        # render global plan
+        if is_on_global_plan:
+            fill_coords(img, point_in_circle(cx=0.75, cy=0.75, r=0.125), 
+                             (0, 255, 0))
+
+
         # Downsample the image to perform supersampling/anti-aliasing
         img = downsample(img, subdivs)
 
@@ -177,7 +184,8 @@ class Grid(ABC):
             agent_pos=None,
             agent_dir=None,
             highlight_mask=None,
-            breadcrumbs=None
+            breadcrumbs=None,
+            global_plan=None
     ):
         """
         Render this grid at a given scale
@@ -198,14 +206,24 @@ class Grid(ABC):
                 cell = self.get(i, j)
                 agent_here = np.array_equal(agent_pos, (i, j))
                 breadcrumb = False
+                is_on_global_plan = False
                 if breadcrumbs[i, j]:
                     breadcrumb = True
+                if global_plan:
+                    if (i, j) in global_plan:
+                        is_on_global_plan = True
+                        # TODO
+                        # print ((i, j), "is on the path.")
+                    else:
+                        pass
+                        # print ((i, j), "is not on the path.")
                 tile_img = self.render_tile(
                     cell,
                     agent_dir=agent_dir if agent_here else None,
                     highlight=highlight_mask[i, j],
                     tile_size=tile_size,
-                    breadcrumb=breadcrumb
+                    breadcrumb=breadcrumb,
+                    is_on_global_plan=is_on_global_plan
                 )
                 ymin = j * tile_size
                 ymax = (j + 1) * tile_size
