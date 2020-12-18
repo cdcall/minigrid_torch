@@ -23,6 +23,7 @@ class OutputUtils:
         os.makedirs(log_dir)
         self.tb_writer = SummaryWriter(log_dir)
 
+        # training scalars
         self.single_scalars = ["FPS", "entropy", "value", "policy_loss", "value_loss", "grad_norm"]
 
     def write_tensorboard_training_values(self, header, data, num_frames):

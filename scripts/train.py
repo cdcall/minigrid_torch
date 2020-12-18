@@ -3,7 +3,6 @@ import time
 import datetime
 import torch
 import torch_ac
-# import tensorboardX
 import sys
 import utils
 from model import ACModel
@@ -14,7 +13,7 @@ from utils.output_utils import OutputUtils
 
 parser = argparse.ArgumentParser()
 
-## General parameters
+# General parameters
 parser.add_argument("--algo", required=True,
                     help="algorithm to use: a2c | ppo (REQUIRED)")
 parser.add_argument("--env", required=True,
@@ -34,7 +33,7 @@ parser.add_argument("--frames", type=int, default=10**7,
 parser.add_argument("--wrapper", default=None,
                     help="wrapper to modify observation")
 
-## Parameters for main algorithm
+# Parameters for main algorithm
 parser.add_argument("--epochs", type=int, default=4,
                     help="number of epochs for PPO (default: 4)")
 parser.add_argument("--batch-size", type=int, default=256,
@@ -78,16 +77,15 @@ model_dir = utils.get_model_dir(model_name)
 
 # Load loggers and Tensorboard writer
 
-txt_logger = utils.get_txt_logger(model_dir)
+log_dir = model_dir + "/Train"
+main_logger = utils.get_txt_logger(model_dir)
 csv_file, csv_logger = utils.get_csv_logger(model_dir)
-# tb_writer = tensorboardX.SummaryWriter(model_dir)
-tb_dir = model_dir + "/Train"
-output_utils = OutputUtils(tb_dir, tb_dir)
+output_utils = OutputUtils(log_dir, log_dir)
 
 # Log command and all script arguments
 
-txt_logger.info("{}\n".format(" ".join(sys.argv)))
-txt_logger.info("{}\n".format(args))
+main_logger.info("{}\n".format(" ".join(sys.argv)))
+main_logger.info("{}\n".format(args))
 
 # Set seed for all randomness sources
 
@@ -96,21 +94,21 @@ utils.seed(args.seed)
 # Set device
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-txt_logger.info(f"Device: {device}\n")
+main_logger.info(f"Device: {device}\n")
 
 # Load environments
 
 envs = []
 # for i in range(args.procs):
 #     envs.append(utils.make_env(args.env, args.seed + 10000 * i))
-# txt_logger.info("Environments loaded\n")
+# main_logger.info("Environments loaded\n")
 
 for i in range(args.procs):
+    env1 = utils.make_env(args.env, args.seed + 10000 * i)
     if args.wrapper:
-        env1 = utils.make_env(args.env, args.seed + 10000 * i)
         envs.append(FullyObsWrapper(env1))
     else:
-         envs.append(utils.make_env(args.env, args.seed + 10000 * i))
+        envs.append(env1)
 
 # Load training status
 
@@ -118,14 +116,14 @@ try:
     status = utils.get_status(model_dir)
 except OSError:
     status = {"num_frames": 0, "update": 0}
-txt_logger.info("Training status loaded\n")
+main_logger.info("Training status loaded\n")
 
 # Load observations preprocessor
 
 obs_space, preprocess_obss = utils.get_obss_preprocessor(envs[0].observation_space)
 if "vocab" in status:
     preprocess_obss.vocab.load_vocab(status["vocab"])
-txt_logger.info("Observations preprocessor loaded")
+main_logger.info("Observations preprocessor loaded")
 
 # Load model
 
@@ -133,17 +131,17 @@ acmodel = ACModel(obs_space, envs[0].action_space, args.mem, args.text)
 if "model_state" in status:
     acmodel.load_state_dict(status["model_state"])
 acmodel.to(device)
-txt_logger.info("Model loaded\n")
-txt_logger.info("{}\n".format(acmodel))
+main_logger.info("Model loaded\n")
+main_logger.info("{}\n".format(acmodel))
 
 # Load algo
 
 if args.algo == "a2c":
-    algo = torch_ac.A2CAlgo(envs, acmodel, device, args.frames_per_proc, args.discount, args.lr, args.gae_lambda,
+    algo = torch_ac.A2CAlgo(envs, acmodel, log_dir, device, args.frames_per_proc, args.discount, args.lr, args.gae_lambda,
                             args.entropy_coef, args.value_loss_coef, args.max_grad_norm, args.recurrence,
                             args.optim_alpha, args.optim_eps, preprocess_obss)
 elif args.algo == "ppo":
-    algo = torch_ac.PPOAlgo(envs, acmodel, device, args.frames_per_proc, args.discount, args.lr, args.gae_lambda,
+    algo = torch_ac.PPOAlgo(envs, acmodel, log_dir, device, args.frames_per_proc, args.discount, args.lr, args.gae_lambda,
                             args.entropy_coef, args.value_loss_coef, args.max_grad_norm, args.recurrence,
                             args.optim_eps, args.clip_eps, args.epochs, args.batch_size, preprocess_obss)
 else:
@@ -151,7 +149,7 @@ else:
 
 if "optimizer_state" in status:
     algo.optimizer.load_state_dict(status["optimizer_state"])
-txt_logger.info("Optimizer loaded\n")
+main_logger.info("Optimizer loaded\n")
 
 # Train model
 
@@ -161,7 +159,6 @@ start_time = time.time()
 
 while num_frames < args.frames:
     # Update model parameters
-    # print("got here")
     update_start_time = time.time()
     exps, logs1 = algo.collect_experiences()
     logs2 = algo.update_parameters(exps)
@@ -192,7 +189,7 @@ while num_frames < args.frames:
         header += ["entropy", "value", "policy_loss", "value_loss", "grad_norm"]
         data += [logs["entropy"], logs["value"], logs["policy_loss"], logs["value_loss"], logs["grad_norm"]]
 
-        txt_logger.info(
+        main_logger.info(
             "U {} | F {:06} | FPS {:04.0f} | D {} | rR:μσmM {:.2f} {:.2f} {:.2f} {:.2f} | F:μσmM {:.1f} {:.1f} {} {} | H {:.3f} | V {:.3f} | pL {:.3f} | vL {:.3f} | ∇ {:.3f}"
             .format(*data))
 
@@ -217,4 +214,4 @@ while num_frames < args.frames:
         if hasattr(preprocess_obss, "vocab"):
             status["vocab"] = preprocess_obss.vocab.vocab
         utils.save_status(status, model_dir)
-        txt_logger.info("Status saved")
+        main_logger.info("Status saved")

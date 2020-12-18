@@ -62,8 +62,8 @@ class GoToDoorEnv(MiniGridEnv):
         # Generate the mission string
         self.mission = 'go to the %s door' % self.target_color
 
-    def step(self, action):
-        obs, reward, done, info = super().step(action)
+    def step(self, action, logger=None):
+        obs, reward, done, info = super().step(action, logger)
 
         ax, ay = self.agent_pos
         tx, ty = self.target_pos

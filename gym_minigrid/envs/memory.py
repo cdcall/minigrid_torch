@@ -85,10 +85,10 @@ class MemoryEnv(MiniGridEnv):
 
         self.mission = 'go to the matching object at the end of the hallway'
 
-    def step(self, action):
+    def step(self, action, logger=None):
         if action == MiniGridEnv.Actions.pickup:
             action = MiniGridEnv.Actions.toggle
-        obs, reward, done, info = MiniGridEnv.step(self, action)
+        obs, reward, done, info = MiniGridEnv.step(self, action, logger)
 
         if tuple(self.agent_pos) == self.success_pos:
             reward = self._reward()

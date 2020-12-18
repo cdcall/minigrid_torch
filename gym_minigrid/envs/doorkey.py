@@ -11,7 +11,7 @@ class DoorKeyEnv(MiniGridEnv):
         super().__init__(
             grid_size=size,
             max_steps=10*size*size,
-            use_global_planner=False,
+            use_global_planner=True,
             use_carrot_stick_waypoint=False,
             waypoint_distance=3
         )

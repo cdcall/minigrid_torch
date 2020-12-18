@@ -1,4 +1,4 @@
-from .constants import *
+from gym_minigrid.constants import *
 from abc import ABC, abstractmethod
 
 
@@ -100,7 +100,6 @@ class WorldObj(ABC):
         return v
 
 
-# TODO -- what is a goal??
 class Goal(WorldObj):
 
     def __init__(self):
@@ -110,10 +109,10 @@ class Goal(WorldObj):
         return False
 
     def can_overlap(self):
-        return True  # TODO False?
+        return True
 
     def can_pickup(self):
-        return False  # TODO True?
+        return False
 
     def see_behind(self):
         return True

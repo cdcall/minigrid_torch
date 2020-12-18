@@ -1,4 +1,4 @@
-from .world_obj import *
+from gym_minigrid.world_obj import *
 from abc import ABC
 
 
@@ -122,8 +122,6 @@ class Grid(ABC):
             subdivs=3
     ):
 
-        # print(f"      render tile / breadcrumb {breadcrumb}")
-
         """
         Render a tile and cache the result
         """
@@ -161,7 +159,6 @@ class Grid(ABC):
 
         # render breadcrumb if needed
         if breadcrumb:
-            print("                  ------------drawing breadcrumb")
             fill_coords(img, point_in_circle(cx=0.5, cy=0.5, r=0.125), (255, 255, 255))
 
         # render global plan
@@ -212,11 +209,7 @@ class Grid(ABC):
                 if global_plan:
                     if (i, j) in global_plan:
                         is_on_global_plan = True
-                        # TODO
-                        # print ((i, j), "is on the path.")
-                    else:
-                        pass
-                        # print ((i, j), "is not on the path.")
+
                 tile_img = self.render_tile(
                     cell,
                     agent_dir=agent_dir if agent_here else None,

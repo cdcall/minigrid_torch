@@ -1,12 +1,8 @@
-import os
-import json
 import numpy
 import re
 import torch
-import torch_ac
+from torch_ac.ac_utils import DictList
 import gym
-
-import utils
 
 
 def get_obss_preprocessor(obs_space):
@@ -15,7 +11,7 @@ def get_obss_preprocessor(obs_space):
         obs_space = {"image": obs_space.shape}
 
         def preprocess_obss(obss, device=None):
-            return torch_ac.DictList({
+            return DictList({
                 "image": preprocess_images(obss, device=device)
             })
 
@@ -24,8 +20,9 @@ def get_obss_preprocessor(obs_space):
         obs_space = {"image": obs_space.spaces["image"].shape, "text": 100}
 
         vocab = Vocabulary(obs_space["text"])
+
         def preprocess_obss(obss, device=None):
-            return torch_ac.DictList({
+            return DictList({
                 "image": preprocess_images([obs["image"] for obs in obss], device=device),
                 "text": preprocess_texts([obs["mission"] for obs in obss], vocab, device=device)
             })
@@ -73,7 +70,7 @@ class Vocabulary:
         self.vocab = vocab
 
     def __getitem__(self, token):
-        if not token in self.vocab.keys():
+        if token not in self.vocab.keys():
             if len(self.vocab) >= self.max_size:
                 raise ValueError("Maximum vocabulary capacity reached")
             self.vocab[token] = len(self.vocab) + 1

@@ -1,10 +1,10 @@
 import argparse
 import time
 import torch
-from torch_ac.utils.penv import ParallelEnv
+from torch_ac.ac_utils.penv import ParallelEnv
 import tensorboardX
 import utils
-
+from utils.output_utils import OutputUtils
 
 # Parse arguments
 
@@ -38,14 +38,21 @@ utils.seed(args.seed)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Device: {device}\n")
 
+# Initialize logs
+
+model_dir = utils.get_model_dir(args.model)
+logs = {"num_frames_per_episode": [], "return_per_episode": []}
+log_dir = model_dir + "/Evaluation"
+# needed to clear logs, may use tensorboard in the future
+output_utils = OutputUtils(log_dir, log_dir)
+
 # Load environments
 
 envs = []
 for i in range(args.procs):
     env = utils.make_env(args.env, args.seed + 10000 * i)
     envs.append(env)
-env = ParallelEnv(envs)
-print("Environments loaded\n")
+env = ParallelEnv(envs, log_dir)
 
 # Load agent
 
@@ -55,9 +62,6 @@ agent = utils.Agent(env.observation_space, env.action_space, model_dir,
                     use_memory=args.memory, use_text=args.text)
 print("Agent loaded\n")
 
-# Initialize logs
-
-logs = {"num_frames_per_episode": [], "return_per_episode": []}
 
 # Run agent
 
@@ -70,8 +74,9 @@ log_episode_return = torch.zeros(args.procs, device=device)
 log_episode_num_frames = torch.zeros(args.procs, device=device)
 
 while log_done_counter < args.episodes:
+
     actions = agent.get_actions(obss)
-    obss, rewards, dones, _ = env.step(actions)
+    obss, rewards, dones, _ = env.step(actions)  # , step_logger)
     agent.analyze_feedbacks(rewards, dones)
 
     log_episode_return += torch.tensor(rewards, device=device, dtype=torch.float)

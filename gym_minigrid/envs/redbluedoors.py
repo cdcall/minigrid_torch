@@ -41,11 +41,11 @@ class RedBlueDoorEnv(MiniGridEnv):
         # Generate the mission string
         self.mission = "open the red door then the blue door"
 
-    def step(self, action):
+    def step(self, action, logger=None):
         red_door_opened_before = self.red_door.is_open
         blue_door_opened_before = self.blue_door.is_open
 
-        obs, reward, done, info = MiniGridEnv.step(self, action)
+        obs, reward, done, info = MiniGridEnv.step(self, action, logger)
 
         red_door_opened_after = self.red_door.is_open
         blue_door_opened_after = self.blue_door.is_open

@@ -1,9 +1,7 @@
 import hashlib
 from enum import IntEnum
-
 from gym.utils import seeding
 from gym.vector.utils import spaces
-
 from .world_obj import *
 from abc import ABC, abstractmethod
 from gym_minigrid.grid import Grid
@@ -13,10 +11,9 @@ from .global_planner import GlobalPlanner
 class MiniGridEnv(ABC):  # (gym.Env):
 
     """
-    2D grid world game environment
+    2D grid world game environment base class
+    that sits between base gym.Env and navigation environments
     """
-
-    # TODO removing 'human' mode as it doesn't jive with docker
 
     metadata = {
         'render.modes': ['rgb_array'],
@@ -78,7 +75,7 @@ class MiniGridEnv(ABC):  # (gym.Env):
         self.agent_view_size = agent_view_size
 
         # Global planner for the environment. The planner finds
-        # the shortest obstacle free map from the agent to the goal.
+        # the shortest obstacle free path from the agent to the goal.
         # It can be used to provide short-term waypoints for the 
         # agent.
         self.use_global_planner = use_global_planner
@@ -110,15 +107,8 @@ class MiniGridEnv(ABC):  # (gym.Env):
             'image': self.observation_space
         })
 
-        # Range of possible rewards
+        # Range of possible rewards  # TODO these are overridden in dynamic env for example
         self.reward_range = (0, 1)
-
-        #
-        # Range of penalties
-        self.penalty_range = (0, 1)
-
-        # Window to use for human rendering mode  # TODO disable this as it's useless in docker
-        # self.window = None
 
         # Environment configuration
         self.width = width
@@ -136,8 +126,6 @@ class MiniGridEnv(ABC):  # (gym.Env):
         # breadcrumbs to show agent's path through the grid
         self.breadcrumbs = np.zeros(shape=(self.width, self.height), dtype=np.bool)
 
-        # self.np_random = None
-
         # Initialize the state
         self.reset()
 
@@ -145,11 +133,11 @@ class MiniGridEnv(ABC):  # (gym.Env):
     # gym.Env basic agent methods
     # (step, reset, render, close, and seed)
 
-    def step(self, action):
-        self.step_count += 1
+    def step(self, action, logger=None):
+
+        # self.step_count += 1
 
         reward = 0
-        penalty = 0  # TODO
         done = False
 
         # Get the position in front of the agent
@@ -160,33 +148,32 @@ class MiniGridEnv(ABC):  # (gym.Env):
 
         # Rotate left
         if action == self.actions.left:
-            self.agent_dir -= 1
-            if self.agent_dir < 0:
-                self.agent_dir += 4
+            self._rotate_left(logger)
 
         # Rotate right
         elif action == self.actions.right:
-            self.agent_dir = (self.agent_dir + 1) % 4
+            self._rotate_right(logger)
 
         # Move forward
         elif action == self.actions.forward:
             if not fwd_cell or fwd_cell.can_overlap():
-                # add last agent position to breadcrumbs
-                self.breadcrumbs[self.agent_pos[0], self.agent_pos[1]] = True
-                self.agent_pos = fwd_pos
+                self._step_forward(logger)
+
             if fwd_cell and fwd_cell.type == 'goal':
                 done = True
                 reward = self._reward()
+                if logger:
+                    logger.info(f"        -------------goal achieved in {self.step_count} steps\n\n")
+
             if fwd_cell and fwd_cell.type == 'lava':
+                if logger:
+                    logger.info(f"        -------------walked into lava at step {self.step_count} \n")
                 done = True
-            if fwd_cell and fwd_cell.type == 'grass':
-                # TODO this will incur a penalty
-                print("    stepping on grass now")
             if fwd_cell and fwd_cell.type == 'waypoint':
                 # Remove the waypoint upon reaching it
                 self.grid.set(*fwd_pos, None)
 
-                # TODO: We probably want ot provide small rewards
+                # TODO: We probably want to provide some reward
                 # for reaching waypoints
                 
 
@@ -197,10 +184,14 @@ class MiniGridEnv(ABC):  # (gym.Env):
                     self.carrying = fwd_cell
                     self.carrying.cur_pos = np.array([-1, -1])
                     self.grid.set(*fwd_pos, None)
+                    if logger:
+                        logger.info(f"        -------------picked up {self.carrying.type} at step {self.step_count} \n")
 
         # Drop an object
         elif action == self.actions.drop:
             if not fwd_cell and self.carrying:
+                if logger:
+                    logger.info(f"        -------------dropped {self.carrying.type} at step {self.step_count} \n")
                 self.grid.set(*fwd_pos, self.carrying)
                 self.carrying.cur_pos = fwd_pos
                 self.carrying = None
@@ -208,12 +199,15 @@ class MiniGridEnv(ABC):  # (gym.Env):
         # Toggle/activate an object
         elif action == self.actions.toggle:
             if fwd_cell:
+                if logger:
+                    logger.info(f"        -------------toggled at step {self.step_count} \n")
                 fwd_cell.toggle(self, fwd_pos)
 
         # Done action (not used by default)
         elif action == self.actions.done:
             pass
         else:
+            print(f"unknown action {action}")
             assert False, "unknown action"
 
         if self.step_count >= self.max_steps:
@@ -276,16 +270,59 @@ class MiniGridEnv(ABC):  # (gym.Env):
         """
         Render the whole-grid rgb_array view
         """
-
         if close:
-            # if self.window:
-            #     self.window.close()
             return
+        highlight_mask = None
+        if highlight:
+            highlight_mask = self._create_highlight_mask()
+        # Render the whole grid
+        img = self.grid.render(
+            tile_size,
+            self.agent_pos,
+            self.agent_dir,
+            highlight_mask=highlight_mask,
+            breadcrumbs=self.breadcrumbs,
+            global_plan=self.global_plan if (visualize_plan and self.use_global_planner) else None
+        )
+        return img
 
-        # if mode == 'human' and not self.window:
-        #     import gym_minigrid.window
-        #     self.window = gym_minigrid.window.Window('gym_minigrid')
-        #     self.window.show(block=False)
+    def close(self):
+        return
+
+    def seed(self, seed=1337):
+        # Seed the random number generator
+        self.np_random, _ = seeding.np_random(seed)
+        return [seed]
+
+    # ----------------------------------------
+    # other methods
+
+    def _rotate_left(self, logger=None):
+        if logger:
+            logger.info(f"   left")
+        self.step_count += 1
+        self.agent_dir -= 1
+        if self.agent_dir < 0:
+            self.agent_dir += 4
+
+    def _rotate_right(self, logger=None):
+        if logger:
+            logger.info(f"    right")
+        self.step_count += 1
+        self.agent_dir = (self.agent_dir + 1) % 4
+
+    def _step_forward(self, logger=None):
+        self.step_count += 1
+        # add last agent position to breadcrumbs
+        self.breadcrumbs[self.agent_pos[0], self.agent_pos[1]] = True
+        self.agent_pos = self.front_pos
+        if logger:
+            logger.info(f"        move to [{self.agent_pos[0]}, {self.agent_pos[1]}] at step {self.step_count}")
+
+    def _create_highlight_mask(self):
+
+        # Mask of which cells to highlight
+        highlight_mask = np.zeros(shape=(self.width, self.height), dtype=np.bool)
 
         # Compute which cells are visible to the agent
         _, vis_mask = self.gen_obs_grid()
@@ -295,9 +332,6 @@ class MiniGridEnv(ABC):  # (gym.Env):
         f_vec = self.dir_vec
         r_vec = self.right_vec
         top_left = self.agent_pos + f_vec * (self.agent_view_size - 1) - r_vec * (self.agent_view_size // 2)
-
-        # Mask of which cells to highlight
-        highlight_mask = np.zeros(shape=(self.width, self.height), dtype=np.bool)
 
         # For each cell in the visibility mask
         for vis_j in range(0, self.agent_view_size):
@@ -317,34 +351,7 @@ class MiniGridEnv(ABC):  # (gym.Env):
                 # Mark this cell to be highlighted
                 highlight_mask[abs_i, abs_j] = True
 
-        # Render the whole grid
-        img = self.grid.render(
-            tile_size,
-            self.agent_pos,
-            self.agent_dir,
-            highlight_mask=highlight_mask if highlight else None,
-            breadcrumbs=self.breadcrumbs,
-            global_plan=self.global_plan if (visualize_plan and self.use_global_planner) else None
-        )
-
-        # if mode == 'human':
-        #     self.window.show_img(img)
-        #     self.window.set_caption(self.mission)
-
-        return img
-
-    def close(self):
-        #     # if self.window:
-        #     #     self.window.close()
-        return
-
-    def seed(self, seed=1337):
-        # Seed the random number generator
-        self.np_random, _ = seeding.np_random(seed)
-        return [seed]
-
-    # ----------------------------------------
-    # other methods
+        return highlight_mask
 
     def hash(self, size=16):
         """Compute a hash that uniquely identifies the current state of the environment.
@@ -380,7 +387,6 @@ class MiniGridEnv(ABC):  # (gym.Env):
             'goal': 'G',
             'lava': 'V',
             'grass': 'R',
-            'waypoint': 'P',
         }
 
         env_str = ''
@@ -663,13 +669,14 @@ class MiniGridEnv(ABC):  # (gym.Env):
 
         return vx, vy
 
+    # TODO No usages
     def in_view(self, x, y):
         """
         check if a grid position is visible to the agent
         """
-
         return self.relative_coords(x, y) is not None
 
+    # TODO One usage, but it's a test
     def agent_sees(self, x, y):
         """
         Check if a non-empty grid position is visible to the agent
@@ -764,17 +771,10 @@ class MiniGridEnv(ABC):  # (gym.Env):
     @property
     def unwrapped(self):
         """Completely unwrap this env.
-
         Returns:
             gym.Env: The base non-wrapped gym.Env instance
         """
         return self
-
-    # def __str__(self):
-    #     if self.spec is None:
-    #         return '<{} instance>'.format(type(self).__name__)
-    #     else:
-    #         return '<{}<{}>>'.format(type(self).__name__, self.spec.id)
 
     def __enter__(self):
         """Support with-statement for the environment. """
@@ -782,6 +782,5 @@ class MiniGridEnv(ABC):  # (gym.Env):
 
     def __exit__(self, *args):
         """Support with-statement for the environment. """
-        # self.close()
         # propagate exception
         return False
